@@ -17,8 +17,8 @@
       "url": "blog.html"
     },
     {
-      "visible": false,
-      "label": "Tools",
+      "visible": true,
+      "label": "Resources",
       "url": "tools.html"
     }
   ],
