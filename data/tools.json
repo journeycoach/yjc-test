@@ -1,0 +1,36 @@
+{
+    "resources": [
+        {
+            "title": "Enneagram Quick Reference Guide",
+            "category": "Enneagram",
+            "description": "A 2-page cheat sheet on the core fears and desires of all 9 types.",
+            "type": "File Upload",
+            "file": "/assets/images/placeholder-pdf.pdf",
+            "external_url": ""
+        },
+        {
+            "title": "The Enneagram Institute",
+            "category": "Enneagram",
+            "description": "The official resource for in-depth Enneagram type descriptions.",
+            "type": "Website Link",
+            "file": "",
+            "external_url": "https://www.enneagraminstitute.com/"
+        },
+        {
+            "title": "Leadership Transition Assessment",
+            "category": "Leadership",
+            "description": "5 questions to ask yourself before taking on a new executive role.",
+            "type": "File Upload",
+            "file": "/assets/images/placeholder-pdf.pdf",
+            "external_url": ""
+        },
+        {
+            "title": "Harvard Business Review: Emotional Intelligence",
+            "category": "Leadership",
+            "description": "Why EQ matters more than IQ for senior executives.",
+            "type": "Website Link",
+            "file": "",
+            "external_url": "https://hbr.org/topic/emotional-intelligence"
+        }
+    ]
+}

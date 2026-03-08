@@ -1,0 +1,30 @@
+{
+  "brand_name": "Your Journey Coach",
+  "nav_links": [
+    {
+      "label": "Enneagram",
+      "url": "enneagram.html",
+      "visible": true
+    },
+    {
+      "label": "About",
+      "url": "#about",
+      "visible": true
+    },
+    {
+      "visible": false,
+      "label": "blog",
+      "url": "blog.html"
+    },
+    {
+      "visible": false,
+      "label": "Tools",
+      "url": "tools.html"
+    }
+  ],
+  "cta_button": {
+    "label": "Let's Talk",
+    "url": "#contact",
+    "visible": true
+  }
+}

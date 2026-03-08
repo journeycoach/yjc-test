@@ -1,0 +1,90 @@
+backend:
+  name: git-gateway
+  branch: main # Branch to update (optional; defaults to master)
+
+local_backend: true # Allows testing the CMS locally without hitting Netlify/GitHub
+
+site_url: "https://yourjourneycoach.com" # Required for custom domains with Netlify Identity
+display_url: "https://yourjourneycoach.com"
+
+publish_mode: editorial_workflow # Turns "Publish" into "Save Draft" to conserve Netlify build minutes
+
+media_folder: "assets/images" # Media files will be stored in the repo under assets/images
+public_folder: "/assets/images" # Absolute path so image URLs work correctly across all pages
+
+collections:
+  - name: "navigation"
+    label: "Site Navigation"
+    files:
+      - file: "data/nav.json"
+        label: "Navigation Settings"
+        name: "nav_settings"
+        fields:
+          - label: "Brand / Logo Name"
+            name: "brand_name"
+            widget: "string"
+            hint: "The text shown in the top-left corner of every page."
+          - label: "Navigation Links"
+            name: "nav_links"
+            widget: "list"
+            hint: "Control which pages appear in the menu bar and their labels."
+            fields:
+              - { label: "Label (text shown in menu)", name: "label", widget: "string" }
+              - { label: "URL (page link)", name: "url", widget: "string" }
+              - { label: "Visible (show in menu?)", name: "visible", widget: "boolean", default: true }
+          - label: "Call-to-Action Button"
+            name: "cta_button"
+            widget: "object"
+            hint: "The highlighted button on the right side of the nav bar."
+            fields:
+              - { label: "Button Label", name: "label", widget: "string" }
+              - { label: "Button URL", name: "url", widget: "string" }
+              - { label: "Visible (show button?)", name: "visible", widget: "boolean", default: true }
+
+  - name: "testimonials"
+    label: "Testimonials"
+    files:
+      - file: "data/testimonials.json"
+        label: "Testimonials List"
+        name: "testimonials_list"
+        fields:
+          - label: "Testimonials"
+            name: "testimonials"
+            widget: "list"
+            fields:
+              - {label: "Quote", name: "quote", widget: "string"}
+              - {label: "Author", name: "author", widget: "string"}
+
+  - name: "blog"
+    label: "Blog Posts"
+    files:
+      - file: "data/posts.json"
+        label: "Blog Posts List"
+        name: "posts_list"
+        fields:
+          - label: "Posts"
+            name: "posts"
+            widget: "list"
+            fields:
+              - {label: "Title", name: "title", widget: "string"}
+              - {label: "Date", name: "date", widget: "datetime"}
+              - {label: "Author", name: "author", widget: "string", default: "John Paine"}
+              - {label: "Featured Image", name: "image", widget: "image", required: false}
+              - {label: "Summary", name: "summary", widget: "text", required: false}
+  - name: "tools"
+    label: "Tools & Resources"
+    files:
+      - file: "data/tools.json"
+        label: "Resources List"
+        name: "tools_list"
+        fields:
+          - label: "Resources"
+            name: "resources"
+            widget: "list"
+            fields:
+              - {label: "Title", name: "title", widget: "string"}
+              - {label: "Category", name: "category", widget: "select", options: ["Enneagram", "Leadership", "General", "Books", "Podcasts"], default: "General"}
+              - {label: "Description", name: "description", widget: "string"}
+              - {label: "Resource Type", name: "type", widget: "select", options: ["File Upload", "Website Link"]}
+              - {label: "File Upload (PDF/Doc)", name: "file", widget: "file", required: false, hint: "Use this if the resource is a file they should download."}
+              - {label: "External URL (Website)", name: "external_url", widget: "string", required: false, hint: "Use this if the resource is a link to another site. Make sure to include https://"}
