@@ -71,6 +71,7 @@ collections:
               - {label: "Author", name: "author", widget: "string", default: "John Paine"}
               - {label: "Featured Image", name: "image", widget: "image", required: false}
               - {label: "Summary", name: "summary", widget: "text", required: false}
+              - {label: "Post Body", name: "body", widget: "markdown", required: false}
   - name: "tools"
     label: "Tools & Resources"
     files:

@@ -49,18 +49,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     revealElements.forEach(el => revealObserver.observe(el));
 
-    // 4. Navbar Scroll Effect (Light Theme)
+    // 4. Navbar Scroll Effect
     const navbar = document.querySelector('.navbar');
     if (navbar) {
-        window.addEventListener('scroll', () => {
+        const handleScroll = () => {
             if (window.scrollY > 50) {
-                navbar.style.background = 'rgba(253, 251, 247, 0.95)'; // Light cream
-                navbar.style.boxShadow = '0 5px 20px rgba(0,0,0,0.05)';
+                navbar.classList.add('scrolled');
             } else {
-                navbar.style.background = 'rgba(253, 251, 247, 0.8)';
-                navbar.style.boxShadow = 'none';
+                navbar.classList.remove('scrolled');
             }
-        });
+        };
+        window.addEventListener('scroll', handleScroll);
+        handleScroll(); // Check on initial load
     }
 
 
@@ -122,10 +122,28 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => showTestimonial(currentIndex), 50);
 
         if (testimonials.length > 1) {
-            setInterval(() => {
-                currentIndex = (currentIndex + 1) % testimonials.length;
-                showTestimonial(currentIndex);
-            }, 6000); // Rotate every 6 seconds
+            let rotateInterval = null;
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Start rotation
+                        if (!rotateInterval) {
+                            rotateInterval = setInterval(() => {
+                                currentIndex = (currentIndex + 1) % testimonials.length;
+                                showTestimonial(currentIndex);
+                            }, 6000); // Rotate every 6 seconds
+                        }
+                    } else {
+                        // Pause rotation
+                        if (rotateInterval) {
+                            clearInterval(rotateInterval);
+                            rotateInterval = null;
+                        }
+                    }
+                });
+            }, { threshold: 0.1 }); // Trigger when at least 10% visible
+
+            observer.observe(container);
         }
     }
 

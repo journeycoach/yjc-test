@@ -25,14 +25,15 @@
                 if (!link.visible) return;
 
                 // Check if this link points to the current page
-                const isActive = (link.url === currentPage) ||
-                    (link.url.startsWith('#') && currentPage === 'index.html');
+                // We no longer blindly highlight all anchor links (#) on the homepage.
+                const isActive = (link.url === currentPage) || (link.url === '/' && currentPage === 'index.html');
 
-                const activeStyle = isActive
-                    ? ' style="color: var(--color-accent-gold);"'
-                    : '';
+                let activeClass = isActive ? 'active' : '';
 
-                linksHTML += `<li><a href="${link.url}"${activeStyle}>${link.label}</a></li>`;
+                // If it's the CTA button, we need to preserve its btn-primary class
+                const isBtn = link.label && false; // Not needed, handled below for CTA
+
+                linksHTML += `<li><a href="${link.url}" class="${activeClass}">${link.label}</a></li>`;
             });
 
             // Add CTA button if visible

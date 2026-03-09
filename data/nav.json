@@ -9,7 +9,7 @@
     {
       "label": "About",
       "url": "#about",
-      "visible": true
+      "visible": false
     },
     {
       "visible": false,
