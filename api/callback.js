@@ -48,30 +48,19 @@ export default async function handler(req, res) {
       </div>
 
       <script>
-        const receiveMessage = (message) => {
-          console.log("OAuth callback received message: ", message.data, " from origin: ", message.origin);
-          
-          if (message.data !== "authorizing:github") {
-            return; // Ignore messages from Vercel Toolbar or other extensions
-          }
+        // Send the authorization success message directly to the CMS parent window
+        console.log("Sending token directly to CMS");
+        
+        // Calculate the origin dynamically based on the current window location
+        const targetOrigin = window.location.origin;
 
-          // Send the authorization success message back to the CMS
-          window.opener.postMessage(
-            'authorization:github:success:{"token":"${token}","provider":"github"}',
-            message.origin
-          );
-          window.removeEventListener("message", receiveMessage, false);
-          
-          // Force close the window in case the CMS fails to do it automatically
-          setTimeout(() => { window.close(); }, 500);
-        }
+        window.opener.postMessage(
+          'authorization:github:success:{"token":"${token}","provider":"github"}',
+          targetOrigin
+        );
         
-        // Listen for the CMS to explicitly request the token
-        window.addEventListener("message", receiveMessage, false);
-        
-        // Initiate handshake with the CMS
-        console.log("OAuth callback initiating handshake with CMS");
-        window.opener.postMessage("authorizing:github", "*");
+        // Force close the window out of courtesy
+        setTimeout(() => { window.close(); }, 500);
       </script>
     </body>
     </html>
