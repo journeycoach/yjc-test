@@ -1,6 +1,7 @@
 backend:
   name: github
   repo: journeycoach/yjc-test # Your GitHub repository
+  base_url: /api
   branch: main # Branch to update (optional; defaults to master)
 
 local_backend: true # Allows testing the CMS locally without hitting Netlify/GitHub
