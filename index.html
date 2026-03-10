@@ -28,9 +28,6 @@
     <link rel="stylesheet" href="css/variables.css?v=6">
     <link rel="stylesheet" href="css/style.css?v=6">
     <link rel="stylesheet" href="css/responsive.css?v=6">
-
-    <!-- Netlify Identity Widget -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 
 <body>
@@ -116,7 +113,8 @@
                     <p class="reveal-text delay-200">Are you feeling stuck in a leadership plateau,
                         struggling with team dynamics, or unsure of your next career step? Identifying the destination
                         is just the first hurdle; charting the course is the real challenge.<br><br> To get you back on
-                        track, we take three practical steps:
+                        track, we co-create your custom <strong>Individual Development Plan</strong> through three
+                        practical steps:
                     </p>
                     <p class="reveal-text delay-300"><strong>Diagnose</strong> &mdash; Leadership patterns, team
                         dynamics, structural bottlenecks.</p>
@@ -398,24 +396,6 @@
 
     <script src="js/nav.js"></script>
     <script src="js/main.js"></script>
-
-    <!-- Netlify Identity Login Redirect -->
-    <script>
-        // Check for Netlify Identity tokens in the URL hash and redirect to admin page
-        if (window.location.hash.includes('_token=')) {
-            window.location.replace('/admin/' + window.location.hash);
-        }
-
-        if (window.netlifyIdentity) {
-            window.netlifyIdentity.on("init", user => {
-                if (!user) {
-                    window.netlifyIdentity.on("login", () => {
-                        document.location.href = "/admin/";
-                    });
-                }
-            });
-        }
-    </script>
 </body>
 
 </html>
