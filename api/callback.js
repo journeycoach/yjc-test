@@ -32,6 +32,10 @@ export default async function handler(req, res) {
         const receiveMessage = (message) => {
           console.log("OAuth callback received message: ", message.data, " from origin: ", message.origin);
           
+          if (message.data !== "authorizing:github") {
+            return; // Ignore messages from Vercel Toolbar or other extensions
+          }
+
           // Send the authorization success message back to the CMS
           window.opener.postMessage(
             'authorization:github:success:{"token":"${token}","provider":"github"}',
