@@ -51,12 +51,9 @@ export default async function handler(req, res) {
         // Send the authorization success message directly to the CMS parent window
         console.log("Sending token directly to CMS");
         
-        // Calculate the origin dynamically based on the current window location
-        const targetOrigin = window.location.origin;
-
         window.opener.postMessage(
           'authorization:github:success:{"token":"${token}","provider":"github"}',
-          targetOrigin
+          "*"
         );
         
         // Force close the window out of courtesy
