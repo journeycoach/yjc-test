@@ -2,7 +2,7 @@ export default function handler(req, res) {
     const clientId = process.env.OAUTH_CLIENT_ID;
 
     if (!clientId) {
-        return res.status(500).send('OAuth Client ID not configured in Vercel.');
+        return res.status(500).send('OAuth Client ID not configured in environment variables.');
     }
 
     const host = req.headers.host;
