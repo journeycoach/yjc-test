@@ -4,7 +4,7 @@ backend:
   base_url: /api
   branch: main # Branch to update (optional; defaults to master)
 
-local_backend: true # Allows testing the CMS locally without hitting Netlify/GitHub
+local_backend: false # Allows testing the CMS locally without hitting Netlify/GitHub
 
 site_url: "https://yourjourneycoach.com" # Required for custom domains with Netlify Identity
 display_url: "https://yourjourneycoach.com"
