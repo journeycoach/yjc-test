@@ -48,16 +48,40 @@ export default async function handler(req, res) {
       </div>
 
       <script>
-        // Send the authorization success message directly to the CMS parent window
-        console.log("Sending token directly to CMS");
+        let origin = "*";
         
-        window.opener.postMessage(
-          'authorization:github:success:{"token":"${token}","provider":"github"}',
-          "*"
-        );
+        const sendTokenAndClose = () => {
+          console.log("Sending token to CMS at origin: ", origin);
+          window.opener.postMessage(
+            'authorization:github:success:{"token":"${token}","provider":"github"}',
+            origin
+          );
+          setTimeout(() => { window.close(); }, 1500);
+        };
+
+        const receiveMessage = (message) => {
+          console.log("OAuth callback received message: ", message.data, " from origin: ", message.origin);
+          
+          if (message.data === "authorizing:github") {
+            origin = message.origin;
+            window.removeEventListener("message", receiveMessage, false);
+            sendTokenAndClose();
+          }
+        };
         
-        // Force close the window out of courtesy
-        setTimeout(() => { window.close(); }, 500);
+        // Listen for the CMS to explicitly request the token
+        window.addEventListener("message", receiveMessage, false);
+        
+        // Initiate handshake with the CMS
+        console.log("OAuth callback initiating handshake with CMS");
+        window.opener.postMessage("authorizing:github", "*");
+
+        // Fallback: If CMS never replies to handshake, try sending token anyway after 3 seconds
+        setTimeout(() => {
+          console.log("Handshake timeout reached. Attempting force send.");
+          window.removeEventListener("message", receiveMessage, false);
+          sendTokenAndClose();
+        }, 3000);
       </script>
     </body>
     </html>
