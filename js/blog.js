@@ -30,16 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const slugFromUrl = urlParams.get('post');
 
-    // Fetch posts
-    fetch('/data/posts.json')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Could not load posts.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            allPosts = data.posts || [];
+    // Fetch posts from Sanity
+    sanityClient.fetch('*[_type == "post"]')
+        .then(posts => {
+            allPosts = posts || [];
 
             // Sort newest first
             allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -56,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })
         .catch(error => {
-            console.error('Error fetching blog posts:', error);
+            console.error('Error fetching blog posts from Sanity:', error);
             if (blogGrid) {
                 blogGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">No posts available yet. Check back soon!</p>';
             }
@@ -130,12 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
         postTitle.textContent = post.title;
         postAuthor.textContent = post.author || 'Your Journey Coach';
 
-        // Use marked.js to parse the Markdown body into HTML (safer than innerHTML with raw input)
-        if (typeof marked !== 'undefined') {
-            postContent.innerHTML = marked.parse(post.body || '');
+        // Use Sanity's PortableText to parse the block content array into HTML
+        if (typeof window.PortableText !== 'undefined' && Array.isArray(post.body)) {
+            postContent.innerHTML = window.PortableText.toHTML(post.body);
+        } else if (typeof post.body === 'string') {
+            postContent.textContent = post.body;
         } else {
-            postContent.textContent = post.body || '';
-            console.warn('Marked.js not loaded. Displaying raw text.');
+            postContent.innerHTML = '<p><em>Content formatting error.</em></p>';
+            console.warn('PortableText script not loaded or body is not an array.');
         }
 
         // Update the URL to a human-readable slug

@@ -3,11 +3,14 @@
 // is injected as early as possible to avoid a flash of empty content.
 
 (function () {
-    // Determine the root path so fetch works from sub-pages too
-    // We always serve from the root on Netlify, so absolute path works everywhere.
-    fetch('/data/nav.json')
-        .then(res => res.json())
+    // Use the global sanityClient initialized in js/sanity-client.js
+    // We query for the single 'navigation' document
+    sanityClient.fetch('*[_type == "navigation"][0]')
         .then(config => {
+            if (!config) {
+                console.warn('nav.js: No navigation document found in Sanity.');
+                return;
+            }
             const logoEl = document.getElementById('nav-logo');
             const navListEl = document.getElementById('nav-links-list');
 

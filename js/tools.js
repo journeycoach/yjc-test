@@ -2,15 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const toolsContainer = document.getElementById('tools-container');
     if (!toolsContainer) return;
 
-    fetch('/data/tools.json')
-        .then(res => {
-            if (!res.ok) throw new Error('Network response cannot be fetched.');
-            return res.json();
-        })
-        .then(data => {
-            const resources = data.resources || [];
-
-            if (resources.length === 0) {
+    sanityClient.fetch('*[_type == "tool"]')
+        .then(resources => {
+            if (!resources || resources.length === 0) {
                 toolsContainer.innerHTML = '<p style="text-align: center; margin-top: 4rem;">No resources available yet. Check back soon!</p>';
                 return;
             }
