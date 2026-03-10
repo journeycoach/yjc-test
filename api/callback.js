@@ -30,14 +30,21 @@ export default async function handler(req, res) {
         const script = `
       <script>
         const receiveMessage = (message) => {
-          if (!message.origin.includes(window.location.hostname)) return;
+          console.log("OAuth callback received message: ", message.data, " from origin: ", message.origin);
+          
+          // Send the authorization success message back to the CMS
           window.opener.postMessage(
             'authorization:github:success:{"token":"${token}","provider":"github"}',
             message.origin
           );
           window.removeEventListener("message", receiveMessage, false);
         }
+        
+        // Listen for the CMS to explicitly request the token
         window.addEventListener("message", receiveMessage, false);
+        
+        // Initiate handshake with the CMS
+        console.log("OAuth callback initiating handshake with CMS");
         window.opener.postMessage("authorizing:github", "*");
       </script>
     `;
