@@ -28,6 +28,25 @@ export default async function handler(req, res) {
 
         // Decap CMS postMessage communication bridge
         const script = `
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <title>Login Successful</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f9fafb; color: #111827; }
+        .card { background: white; padding: 2rem 3rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+        h1 { font-size: 1.5rem; margin-bottom: 1rem; color: #10b981; }
+        p { color: #6b7280; margin-bottom: 1.5rem; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h1>Authentication Successful!</h1>
+        <p>You can close this window and return to your journey coach admin page.</p>
+        <button onclick="window.close()" style="padding: 0.5rem 1rem; background: #111827; color: white; border: none; border-radius: 4px; cursor: pointer;">Close Window</button>
+      </div>
+
       <script>
         const receiveMessage = (message) => {
           console.log("OAuth callback received message: ", message.data, " from origin: ", message.origin);
@@ -42,6 +61,9 @@ export default async function handler(req, res) {
             message.origin
           );
           window.removeEventListener("message", receiveMessage, false);
+          
+          // Force close the window in case the CMS fails to do it automatically
+          setTimeout(() => { window.close(); }, 500);
         }
         
         // Listen for the CMS to explicitly request the token
@@ -51,6 +73,8 @@ export default async function handler(req, res) {
         console.log("OAuth callback initiating handshake with CMS");
         window.opener.postMessage("authorizing:github", "*");
       </script>
+    </body>
+    </html>
     `;
         res.setHeader('Content-Type', 'text/html');
         res.status(200).send(script);
