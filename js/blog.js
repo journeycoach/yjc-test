@@ -12,6 +12,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let allPosts = [];
 
+    // --- Utility: Render Simple Portable Text ---
+    function renderPortableText(blocks) {
+        if (!Array.isArray(blocks)) return '';
+        
+        let html = '';
+        let inList = false;
+
+        blocks.forEach((block, index) => {
+            if (block._type !== 'block') return;
+            
+            // Extract text from children
+            const text = (block.children || []).map(child => {
+                let textContent = child.text || '';
+                // Handle simple marks if needed (bold, italic)
+                if (child.marks && child.marks.includes('strong')) textContent = `<strong>${textContent}</strong>`;
+                if (child.marks && child.marks.includes('em')) textContent = `<em>${textContent}</em>`;
+                return textContent;
+            }).join('');
+
+            // Handle lists
+            const isListItem = block.listItem === 'bullet' || block.listItem === 'number';
+            const isNextListItem = blocks[index + 1] && (blocks[index + 1].listItem === 'bullet' || blocks[index + 1].listItem === 'number');
+
+            if (isListItem && !inList) {
+                html += block.listItem === 'number' ? '<ol>' : '<ul>';
+                inList = true;
+            }
+
+            if (isListItem) {
+                html += `<li>${text}</li>`;
+            } else {
+                if (block.style === 'h2') html += `<h2>${text}</h2>`;
+                else if (block.style === 'h3') html += `<h3>${text}</h3>`;
+                else if (block.style === 'blockquote') html += `<blockquote>${text}</blockquote>`;
+                else html += `<p>${text}</p>`;
+            }
+
+            if (inList && !isNextListItem) {
+                html += block.listItem === 'number' ? '</ol>' : '</ul>';
+                inList = false;
+            }
+        });
+
+        return html;
+    }
+
     // --- Utility: Convert a post title into a stable URL slug ---
     function toSlug(title) {
         return (title || '')
@@ -124,14 +170,14 @@ document.addEventListener('DOMContentLoaded', () => {
         postTitle.textContent = post.title;
         postAuthor.textContent = post.author || 'Your Journey Coach';
 
-        // Use Sanity's PortableText to parse the block content array into HTML
-        if (typeof window.PortableText !== 'undefined' && Array.isArray(post.body)) {
-            postContent.innerHTML = window.PortableText.toHTML(post.body);
+        // Use custom renderer to parse the block content array into HTML
+        if (Array.isArray(post.body)) {
+            postContent.innerHTML = renderPortableText(post.body);
         } else if (typeof post.body === 'string') {
             postContent.textContent = post.body;
         } else {
             postContent.innerHTML = '<p><em>Content formatting error.</em></p>';
-            console.warn('PortableText script not loaded or body is not an array.');
+            console.warn('Body is not an array or string.', post.body);
         }
 
         // Update the URL to a human-readable slug
