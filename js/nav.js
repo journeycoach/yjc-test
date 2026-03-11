@@ -13,7 +13,7 @@
                     brand_name: 'Your Journey Coach',
                     nav_links: [
                         { label: 'About', url: 'index.html#welcome', visible: true },
-                        { label: 'Methodology', url: 'index.html#methodology', visible: true },
+                        { label: 'Methodology', url: 'index.html#methodology', visible: false },
                         { label: 'Enneagram', url: 'enneagram.html', visible: true },
                         { label: 'Blog', url: 'blog.html', visible: true },
                         { label: 'Resources', url: 'tools.html', visible: true }
@@ -67,7 +67,7 @@
                 brand_name: 'Your Journey Coach',
                 nav_links: [
                     { label: 'About', url: 'index.html#welcome', visible: true },
-                    { label: 'Methodology', url: 'index.html#methodology', visible: true },
+                    { label: 'Methodology', url: 'index.html#methodology', visible: false },
                     { label: 'Enneagram', url: 'enneagram.html', visible: true },
                     { label: 'Blog', url: 'blog.html', visible: true },
                     { label: 'Resources', url: 'tools.html', visible: true }
