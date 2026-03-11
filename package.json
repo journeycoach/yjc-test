@@ -1,6 +1,0 @@
-{
-    "type": "module",
-    "scripts": {
-        "build": "echo \"Ready to serve static files\""
-    }
-}
