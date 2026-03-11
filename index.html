@@ -283,14 +283,10 @@
 
             <div class="fade-in-scroll form-wrapper"
                 style="width: 100%; max-width: 500px; margin: 1rem auto; padding: 0 1rem;">
-                <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field"
-                    action="/success.html" class="custom-form">
-                    <input type="hidden" name="form-name" value="contact" />
-                    <p class="hidden" style="display: none;">
-                        <label>
-                            Don't fill this out if you're human: <input name="bot-field" />
-                        </label>
-                    </p>
+                <form action="https://api.web3forms.com/submit" method="POST" class="custom-form">
+                    <!-- TODO: Replace this value with your Web3Forms Access Key from web3forms.com -->
+                    <input type="hidden" name="access_key" value="YOUR_ACCESS_KEY_HERE">
+                    <input type="hidden" name="redirect" value="https://yourjourneycoach.com/success.html">
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label for="name"
                             style="display: block; margin-bottom: 0.25rem; color: var(--color-text-secondary); font-size: 0.9rem; letter-spacing: 0.5px;">Name</label>
@@ -345,7 +341,6 @@
                             onblur="this.style.borderColor='rgba(255,255,255,0.1)'"></textarea>
                     </div>
 
-                    <!-- Honeypot Active. Removed unused reCAPTCHA code -->
                     <button type="submit" class="btn-primary"
                         style="width: 100%; justify-content: center; font-size: 1.1rem; padding: 0.75rem 2rem; margin-top: 0.5rem;">Send
                         Message</button>
