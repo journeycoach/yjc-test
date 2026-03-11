@@ -8,8 +8,17 @@
     sanityClient.fetch('*[_type == "navigation"][0]')
         .then(config => {
             if (!config) {
-                console.warn('nav.js: No navigation document found in Sanity.');
-                return;
+                console.warn('nav.js: No navigation document found in Sanity. Using fallback defaults.');
+                config = {
+                    brand_name: 'Your Journey Coach',
+                    nav_links: [
+                        { label: 'About', url: 'index.html#welcome', visible: true },
+                        { label: 'Methodology', url: 'index.html#methodology', visible: true },
+                        { label: 'Blog', url: 'blog.html', visible: true },
+                        { label: 'Resources', url: 'tools.html', visible: true }
+                    ],
+                    cta_button: { label: "Let's Talk", url: "index.html#contact", visible: true }
+                };
             }
             const logoEl = document.getElementById('nav-logo');
             const navListEl = document.getElementById('nav-links-list');
