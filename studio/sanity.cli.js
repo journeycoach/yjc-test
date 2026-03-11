@@ -2,8 +2,17 @@ import {defineCliConfig} from 'sanity/cli'
 
 export default defineCliConfig({
   api: {
-    projectId: '9ksnhows',
+    projectId: '9973sk2c',
     dataset: 'production'
+  },
+  project: {
+    basePath: '/admin'
+  },
+  vite: (config) => {
+    return {
+      ...config,
+      base: '/admin/'
+    }
   },
   deployment: {
     /**
