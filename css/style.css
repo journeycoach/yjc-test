@@ -203,7 +203,15 @@ ul {
     z-index: 1000;
     display: flex;
     align-items: center;
-    transition: padding 0.4s ease;
+    transition: height 0.35s ease, padding 0.4s ease;
+}
+
+.navbar.scrolled {
+    height: 60px;
+}
+
+.navbar.scrolled .logo {
+    font-size: 1.2rem;
 }
 
 .navbar::before {
@@ -255,6 +263,7 @@ ul {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--color-accent-gold);
+    transition: font-size 0.35s ease;
 }
 
 .nav-links {
