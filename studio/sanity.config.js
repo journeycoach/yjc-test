@@ -7,7 +7,7 @@ export default defineConfig({
   name: 'default',
   title: 'yjc-content',
 
-  projectId: '9973sk2c',
+  projectId: '9ksnhows',
   dataset: 'production',
   basePath: '/admin',
 
