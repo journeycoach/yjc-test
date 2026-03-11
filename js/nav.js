@@ -14,10 +14,11 @@
                     nav_links: [
                         { label: 'About', url: 'index.html#welcome', visible: true },
                         { label: 'Methodology', url: 'index.html#methodology', visible: true },
+                        { label: 'Enneagram', url: 'enneagram.html', visible: true },
                         { label: 'Blog', url: 'blog.html', visible: true },
                         { label: 'Resources', url: 'tools.html', visible: true }
                     ],
-                    cta_button: { label: "Let's Talk", url: "index.html#contact", visible: true }
+                    cta_button: { label: "Let's Talk", url: "https://yourjourneycoach.formaloo.me/j00loj", visible: true }
                 };
             }
             const logoEl = document.getElementById('nav-logo');
