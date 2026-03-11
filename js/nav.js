@@ -45,6 +45,9 @@
                 linksHTML += `<li><a href="${cta.url}" class="btn-primary">${cta.label}</a></li>`;
             }
 
+            // Add Admin link
+            linksHTML += `<li><a href="/admin" class="btn-primary-outline" style="padding: 0.5rem 1rem; border: 1px solid var(--color-accent-gold); color: var(--color-accent-gold); border-radius: 4px; font-weight: 500; font-size: 0.85rem; margin-left: auto;">Admin</a></li>`;
+
             navListEl.innerHTML = linksHTML;
         })
         .catch(err => {
