@@ -312,30 +312,10 @@
                         </div>
                     </div>
 
-                    <!-- Role / Title (optional) -->
-                    <div class="cf-field">
-                        <label for="cf-role" class="cf-label">Role / Title <span style="color:var(--color-text-muted); font-weight:400;">(optional)</span></label>
-                        <input type="text" id="cf-role" name="role" placeholder="e.g. CEO, VP Engineering, Founder" class="cf-input">
-                    </div>
-
                     <!-- Message -->
                     <div class="cf-field">
                         <label for="cf-message" class="cf-label">What brings you here? <span style="color:var(--color-accent-gold)">*</span></label>
                         <textarea id="cf-message" name="message" required rows="5" placeholder="Tell me a bit about your current situation and what you're hoping to achieve through coaching..." class="cf-input" style="resize: vertical; min-height: 120px;"></textarea>
-                    </div>
-
-                    <!-- How did you hear about us -->
-                    <div class="cf-field">
-                        <label for="cf-referral" class="cf-label">How did you hear about me? <span style="color:var(--color-text-muted); font-weight:400;">(optional)</span></label>
-                        <select id="cf-referral" name="referral" class="cf-input">
-                            <option value="">Select one...</option>
-                            <option value="LinkedIn">LinkedIn</option>
-                            <option value="Referral from a colleague">Referral from a colleague</option>
-                            <option value="Google / web search">Google / web search</option>
-                            <option value="Podcast or interview">Podcast or interview</option>
-                            <option value="Enneagram community">Enneagram community</option>
-                            <option value="Other">Other</option>
-                        </select>
                     </div>
 
                     <!-- Submit -->
@@ -448,9 +428,7 @@
                     const payload = {
                         name: document.getElementById('cf-name').value.trim(),
                         email: document.getElementById('cf-email').value.trim(),
-                        role: document.getElementById('cf-role').value.trim(),
                         message: document.getElementById('cf-message').value.trim(),
-                        referral: document.getElementById('cf-referral').value,
                         _honey: document.getElementById('cf-honey').value,
                     };
 
