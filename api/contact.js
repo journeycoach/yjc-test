@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { name, email, role, message, referral, _honey } = req.body;
+  const { name, email, phone, interest, message, _honey } = req.body;
 
   // Honeypot check — bots fill hidden fields; humans leave them blank
   if (_honey) {
@@ -20,8 +20,8 @@ export default async function handler(req, res) {
   }
 
   // Basic validation
-  if (!name || !email || !message) {
-    return res.status(400).json({ error: 'Name, email, and message are required.' });
+  if (!name || !email || !phone || !interest || !message) {
+    return res.status(400).json({ error: 'Name, email, phone, area of interest, and message are required.' });
   }
 
   // Simple email format check
@@ -53,16 +53,14 @@ export default async function handler(req, res) {
           <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Email</td>
           <td style="padding: 10px 0;"><a href="mailto:${escapeHtml(email)}" style="color: #c7a96b;">${escapeHtml(email)}</a></td>
         </tr>
-        ${role ? `
         <tr>
-          <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Role / Title</td>
-          <td style="padding: 10px 0;">${escapeHtml(role)}</td>
-        </tr>` : ''}
-        ${referral ? `
+          <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Phone</td>
+          <td style="padding: 10px 0;">${escapeHtml(phone)}</td>
+        </tr>
         <tr style="background: #f9f9f9;">
-          <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">How they heard</td>
-          <td style="padding: 10px 0;">${escapeHtml(referral)}</td>
-        </tr>` : ''}
+          <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Area of Interest</td>
+          <td style="padding: 10px 0;">${escapeHtml(interest)}</td>
+        </tr>
         <tr>
           <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Message</td>
           <td style="padding: 10px 0; white-space: pre-wrap;">${escapeHtml(message)}</td>
