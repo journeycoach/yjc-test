@@ -11,14 +11,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Sanity CLI
-        run: npm install -g @sanity/cli
-
       - name: Export Sanity Dataset
-        shell: bash
+        env:
+          SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
         run: |
           mkdir -p backups
-          sanity dataset export --project 9ksnhows production backups/backup.tar.gz --token ${{ secrets.SANITY_AUTH_TOKEN }} --yes
+          npx sanity dataset export production backups/backup.tar.gz --project 9ksnhows --yes
 
       - name: Upload Backup as Artifact
         uses: actions/upload-artifact@v4
