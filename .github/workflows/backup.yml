@@ -16,7 +16,7 @@ jobs:
           SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
         run: |
           mkdir -p backups
-          npx sanity dataset export production backups/backup.tar.gz --project 9ksnhows --yes
+          npx sanity dataset export production backups/backup.tar.gz --project-id 9ksnhows
 
       - name: Upload Backup as Artifact
         uses: actions/upload-artifact@v4
