@@ -1,9 +1,8 @@
 name: Weekly Sanity Backup
 on:
   schedule:
-    # This runs every Sunday at midnight (UTC)
     - cron: "0 0 * * 0"
-  workflow_dispatch: # This lets you click a button to run a backup manually
+  workflow_dispatch:
 
 jobs:
   backup:
@@ -12,13 +11,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Install Sanity CLI
+        run: npm install -g @sanity/cli
+
       - name: Export Sanity Dataset
-        uses: sanity-io/github-action-sanity@v0.7-alpha
-        env:
-          SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
-        with:
-          # This saves your data as a file named "backup.tar.gz"
-          args: dataset export production backups/backup.tar.gz
+        shell: bash
+        run: |
+          mkdir -p backups
+          sanity dataset export production backups/backup.tar.gz --token ${{ secrets.SANITY_AUTH_TOKEN }} --yes
 
       - name: Upload Backup as Artifact
         uses: actions/upload-artifact@v4
