@@ -18,7 +18,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p backups
-          sanity dataset export production backups/backup.tar.gz --token ${{ secrets.SANITY_AUTH_TOKEN }} --yes
+          sanity dataset export --project 9ksnhows production backups/backup.tar.gz --token ${{ secrets.SANITY_AUTH_TOKEN }} --yes
 
       - name: Upload Backup as Artifact
         uses: actions/upload-artifact@v4
