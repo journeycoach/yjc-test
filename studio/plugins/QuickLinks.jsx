@@ -5,8 +5,8 @@ export const QuickLinks = () => {
 
   // Your Coaching Links
   const links = [
-    { title: 'Discovery Call (Calendly)', url: 'https://calendly.com/your-link/discovery' },
-    { title: 'Standard Coaching Session (Zoom)', url: 'https://zoom.us/j/your-room-id' },
+    { title: 'Discovery Call (Calendly)', url: 'https://calendly.com/johnpaine/coaching-call-50' },
+    { title: 'Standard Coaching Session (Zoom)', url: 'https://us06web.zoom.us/j/7697121589?pwd=OUpaVStadW1GblN3OHlNem9ZY1pwdz09' },
     { title: 'Integrative Enneagram Assessment', url: 'https://integrative9.com/your-portal' },
     { title: 'Post-Session Feedback Form', url: 'https://your-form-link.com' }
   ];
@@ -26,14 +26,14 @@ export const QuickLinks = () => {
         {links.map((link, index) => (
           <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1px solid #eaeaea', borderRadius: '8px', backgroundColor: '#fff' }}>
             
-            <div>
+            <div style={{ paddingRight: '16px' }}>
               <strong style={{ display: 'block', fontSize: '16px' }}>{link.title}</strong>
-              <span style={{ color: '#888', fontSize: '14px' }}>{link.url}</span>
+              <span style={{ color: '#888', fontSize: '14px', wordBreak: 'break-all' }}>{link.url}</span>
             </div>
 
             <button 
               onClick={() => handleCopy(link.url, link.title)}
-              style={{ padding: '8px 16px', backgroundColor: copiedText === link.title ? '#4BB543' : '#1e1e1e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+              style={{ padding: '8px 16px', backgroundColor: copiedText === link.title ? '#4BB543' : '#1e1e1e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', minWidth: '110px' }}
             >
               {copiedText === link.title ? 'Copied!' : 'Copy Link'}
             </button>
