@@ -6,9 +6,7 @@ export const QuickLinks = () => {
   // Your Coaching Links
   const links = [
     { title: 'Discovery Call (Calendly)', url: 'https://calendly.com/johnpaine/coaching-call-50' },
-    { title: 'Standard Coaching Session (Zoom)', url: 'https://us06web.zoom.us/j/7697121589?pwd=OUpaVStadW1GblN3OHlNem9ZY1pwdz09' },
-    { title: 'Integrative Enneagram Assessment', url: 'https://integrative9.com/your-portal' },
-    { title: 'Post-Session Feedback Form', url: 'https://your-form-link.com' }
+    { title: 'Standard Coaching Session (Zoom)', url: 'https://us06web.zoom.us/j/7697121589?pwd=OUpaVStadW1GblN3OHlNem9ZY1pwdz09' }
   ];
 
   const handleCopy = (url, title) => {
