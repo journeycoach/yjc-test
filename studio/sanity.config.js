@@ -12,16 +12,13 @@ export default defineConfig({
   dataset: 'production',
   basePath: '/admin',
 
-  tools: (prev) => {
-    return [
-      ...(prev || []),
-      {
-        name: 'quick-links',
-        title: 'Command Center',
-        component: QuickLinks,
-      },
-    ]
-  },
+tools: [
+    {
+      name: 'quick-links',
+      title: 'Command Center',
+      component: QuickLinks,
+    }
+  ],
 
   plugins: [structureTool(), visionTool()],
 
