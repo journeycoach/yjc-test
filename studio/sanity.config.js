@@ -20,8 +20,10 @@ export default defineConfig({
         title: 'Command Center',
         component: QuickLinks,
       },
-      
-      plugins: [structureTool(), visionTool()],
+    ]
+  },
+
+  plugins: [structureTool(), visionTool()],
 
   schema: {
     types: schemaTypes,
