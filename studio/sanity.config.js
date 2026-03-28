@@ -1,4 +1,4 @@
-import { QuickLinks } from './plugins/QuickLinks'
+
 import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
@@ -12,13 +12,6 @@ export default defineConfig({
   dataset: 'production',
   basePath: '/admin',
 
-tools: [
-    {
-      name: 'quick-links',
-      title: 'Command Center',
-      component: QuickLinks,
-    }
-  ],
 
   plugins: [structureTool(), visionTool()],
 

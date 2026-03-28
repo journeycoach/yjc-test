@@ -11,12 +11,35 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { name, email, phone, interest, message, _honey } = req.body;
+  const { name, email, phone, interest, message, _honey, 'cf-turnstile-response': turnstileToken } = req.body;
 
   // Honeypot check — bots fill hidden fields; humans leave them blank
   if (_honey) {
     // Silently succeed so the bot thinks it worked
     return res.status(200).json({ ok: true });
+  }
+
+  // --- CLOUDFLARE TURNSTILE ---
+  if (!turnstileToken) {
+    // The token is missing entirely. Reject it.
+    return res.status(400).json({ error: "CAPTCHA token missing." });
+  }
+
+  // Ask Cloudflare if the token is valid
+  const verifyEndpoint = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+  const verifyResponse = await fetch(verifyEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `secret=${process.env.CLOUDFLARE_TURNSTILE_SECRET}&response=${turnstileToken}`,
+  });
+
+  const verifyData = await verifyResponse.json();
+
+  if (!verifyData.success) {
+    // Cloudflare says the token is fake or expired. Reject it.
+    return res.status(400).json({ error: "CAPTCHA verification failed." });
   }
 
   // Basic validation
