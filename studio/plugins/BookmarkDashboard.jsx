@@ -31,35 +31,35 @@ export function BookmarkDashboard() {
     : Object.keys(groupedBookmarks)
 
   return (
-    <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
-      <header style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 8px 0', color: '#1a1a1a' }}>Quick Links</h1>
-        <p style={{ color: '#666', margin: 0 }}>Click on any of your saved bookmarks to quickly open them.</p>
+    <div style={{ padding: '32px 40px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
+      <header style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 4px 0', color: '#1a1a1a' }}>Quick Links</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Click on any of your saved bookmarks to quickly open them.</p>
       </header>
 
       {bookmarks.length === 0 ? (
-        <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
-          <p style={{ color: '#64748b', margin: 0 }}>No dynamic bookmarks found. Add some in the Desk and assign them to a Category!</p>
+        <div style={{ padding: '30px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+          <p style={{ color: '#64748b', margin: 0, fontSize: '14px' }}>No dynamic bookmarks found. Add some in the Desk and assign them to a Category!</p>
         </div>
       ) : (
         categoryTitles.map(title => (
-          <section key={title} style={{ marginBottom: '48px' }}>
+          <section key={title} style={{ marginBottom: '32px' }}>
             <h2 style={{ 
-              fontSize: '14px', 
+              fontSize: '12px', 
               fontWeight: '700', 
-              letterSpacing: '0.05em', 
+              letterSpacing: '0.08em', 
               textTransform: 'uppercase', 
               color: '#94a3b8', 
-              marginBottom: '20px',
-              paddingBottom: '8px',
-              borderBottom: '1px solid #e2e8f0'
+              marginBottom: '16px',
+              paddingBottom: '6px',
+              borderBottom: '1px solid #f1f5f9'
             }}>
               {title}
             </h2>
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
-              gap: '20px' 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', 
+              gap: '12px' 
             }}>
               {groupedBookmarks[title].map(b => (
                 <a 
@@ -70,37 +70,43 @@ export function BookmarkDashboard() {
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    padding: '24px',
+                    padding: '16px',
                     borderRadius: '8px',
                     backgroundColor: '#fff',
                     border: '1px solid #e2e8f0',
                     textDecoration: 'none',
                     color: 'inherit',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                    transition: 'all 0.15s ease-in-out',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
                   }}
                   onMouseOver={(e) => { 
-                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)'; 
+                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04)'; 
                     e.currentTarget.style.transform = 'translateY(-2px)'; 
                     e.currentTarget.style.borderColor = '#cbd5e1';
                   }}
                   onMouseOut={(e) => { 
-                    e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)'; 
+                    e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)'; 
                     e.currentTarget.style.transform = 'translateY(0)'; 
                     e.currentTarget.style.borderColor = '#e2e8f0';
                   }}
                 >
-                  <h3 style={{ fontSize: '18px', fontWeight: '600', margin: '0 0 8px 0', color: '#1a1d1e' }}>
+                  <h3 style={{ fontSize: '15.5px', fontWeight: '600', margin: '0 0 6px 0', color: '#1a1d1e', lineHeight: '1.4' }}>
                     {b.title}
                   </h3>
                   {b.description && (
-                    <p style={{ fontSize: '14px', color: '#64748b', margin: 0, lineHeight: '1.6' }}>
+                    <p style={{ 
+                      fontSize: '12.5px', 
+                      color: '#64748b', 
+                      margin: 0, 
+                      lineHeight: '1.5',
+                      display: '-webkit-box',
+                      WebkitLineClamp: '2',
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
                       {b.description}
                     </p>
                   )}
-                  <div style={{ marginTop: '16px', fontSize: '12px', color: '#2563eb', fontWeight: '500' }}>
-                    Open URL &rarr;
-                  </div>
                 </a>
               ))}
             </div>
