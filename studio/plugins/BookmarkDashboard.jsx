@@ -1,32 +1,34 @@
 import React, { useEffect, useState } from 'react'
 import { useClient } from 'sanity'
 
-const CATEGORY_LABELS = {
-  coaching: 'Coaching Tools',
-  business: 'Business & Management',
-  communication: 'Communication & Social',
-  personal: 'Personal',
-  other: 'Other'
-}
-
 export function BookmarkDashboard() {
   const client = useClient({apiVersion: '2023-05-01'})
   const [bookmarks, setBookmarks] = useState([])
+  const [categories, setCategories] = useState([])
 
   useEffect(() => {
-    client.fetch('*[_type == "bookmark"] | order(_createdAt desc)').then(setBookmarks)
+    // Fetch both bookmarks and categories
+    Promise.all([
+      client.fetch('*[_type == "bookmark"]{..., "categoryTitle": category->title} | order(_createdAt desc)'),
+      client.fetch('*[_type == "bookmarkCategory"] | order(title asc)')
+    ]).then(([fetchedBookmarks, fetchedCategories]) => {
+      setBookmarks(fetchedBookmarks)
+      setCategories(fetchedCategories)
+    })
   }, [client])
 
-  // Grouping logic
+  // Grouping logic based on categories defined in the database
   const groupedBookmarks = bookmarks.reduce((acc, curr) => {
-    const cat = curr.category || 'other'
-    if (!acc[cat]) acc[cat] = []
-    acc[cat].push(curr)
+    const catTitle = curr.categoryTitle || 'Uncategorized'
+    if (!acc[catTitle]) acc[catTitle] = []
+    acc[catTitle].push(curr)
     return acc
   }, {})
 
-  // Sorting categories by the order they appear in CATEGORY_LABELS
-  const sortedCategoryKeys = Object.keys(CATEGORY_LABELS).filter(key => groupedBookmarks[key])
+  // Get only categories that have links, or use the full category list for consistent order
+  const categoryTitles = categories.length > 0 
+    ? categories.map(c => c.title).filter(title => groupedBookmarks[title])
+    : Object.keys(groupedBookmarks)
 
   return (
     <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
@@ -37,11 +39,11 @@ export function BookmarkDashboard() {
 
       {bookmarks.length === 0 ? (
         <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
-          <p style={{ color: '#64748b', margin: 0 }}>No bookmarks have been saved yet. You can add them under the &quot;Bookmarks&quot; folder in the main Desk!</p>
+          <p style={{ color: '#64748b', margin: 0 }}>No dynamic bookmarks found. Add some in the Desk and assign them to a Category!</p>
         </div>
       ) : (
-        sortedCategoryKeys.map(catKey => (
-          <section key={catKey} style={{ marginBottom: '48px' }}>
+        categoryTitles.map(title => (
+          <section key={title} style={{ marginBottom: '48px' }}>
             <h2 style={{ 
               fontSize: '14px', 
               fontWeight: '700', 
@@ -52,14 +54,14 @@ export function BookmarkDashboard() {
               paddingBottom: '8px',
               borderBottom: '1px solid #e2e8f0'
             }}>
-              {CATEGORY_LABELS[catKey]}
+              {title}
             </h2>
             <div style={{ 
               display: 'grid', 
               gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
               gap: '20px' 
             }}>
-              {groupedBookmarks[catKey].map(b => (
+              {groupedBookmarks[title].map(b => (
                 <a 
                   key={b._id} 
                   href={b.url} 

@@ -22,19 +22,10 @@ export default {
     {
       name: 'category',
       title: 'Category',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'Coaching Tools', value: 'coaching' },
-          { title: 'Business & Management', value: 'business' },
-          { title: 'Communication & Social', value: 'communication' },
-          { title: 'Personal', value: 'personal' },
-          { title: 'Other', value: 'other' }
-        ]
-      },
+      type: 'reference',
+      to: [{ type: 'bookmarkCategory' }],
       validation: (Rule) => Rule.required(),
-      initialValue: 'other',
-      description: 'Which category does this link belong to?'
+      description: 'Select the dynamic category for this link.'
     },
     {
       name: 'description',
