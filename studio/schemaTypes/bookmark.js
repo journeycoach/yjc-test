@@ -20,6 +20,23 @@ export default {
       description: 'The web address.'
     },
     {
+      name: 'category',
+      title: 'Category',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Coaching Tools', value: 'coaching' },
+          { title: 'Business & Management', value: 'business' },
+          { title: 'Communication & Social', value: 'communication' },
+          { title: 'Personal', value: 'personal' },
+          { title: 'Other', value: 'other' }
+        ]
+      },
+      validation: (Rule) => Rule.required(),
+      initialValue: 'other',
+      description: 'Which category does this link belong to?'
+    },
+    {
       name: 'description',
       title: 'Description',
       type: 'text',
