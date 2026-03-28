@@ -1,4 +1,4 @@
-
+import { BookmarkDashboard } from './plugins/BookmarkDashboard'
 import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
@@ -11,7 +11,13 @@ export default defineConfig({
   projectId: '9ksnhows',
   dataset: 'production',
   basePath: '/admin',
-
+  tools: [
+    {
+      name: 'bookmark-dashboard',
+      title: 'Dashboard',
+      component: BookmarkDashboard,
+    }
+  ],
 
   plugins: [structureTool(), visionTool()],
 
