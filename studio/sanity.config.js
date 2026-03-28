@@ -1,4 +1,5 @@
 import { BookmarkDashboard } from './plugins/BookmarkDashboard'
+import { ReturnToSite } from './plugins/ReturnToSite'
 import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
@@ -16,6 +17,11 @@ export default defineConfig({
       name: 'bookmark-dashboard',
       title: 'Dashboard',
       component: BookmarkDashboard,
+    },
+    {
+      name: 'return-to-site',
+      title: '← Back to Website',
+      component: ReturnToSite,
     }
   ],
 
