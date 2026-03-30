@@ -28,6 +28,11 @@
     <link rel="stylesheet" href="css/variables.css?v=6">
     <link rel="stylesheet" href="css/style.css?v=6">
     <link rel="stylesheet" href="css/responsive.css?v=6">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    <link rel="apple-touch-icon" href="assets/images/favicon.png">
 </head>
 
 <body>
@@ -39,7 +44,9 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="logo" id="nav-logo">Your Journey Coach</a>
+            <a href="index.html" class="logo" id="nav-logo">
+                <img src="assets/images/logo.png" alt="Your Journey Coach" class="logo-img">
+            </a>
             <ul class="nav-links" id="nav-links-list">
                 <!-- Populated dynamically by js/nav.js from data/nav.json -->
             </ul>
@@ -451,17 +458,62 @@
                     }
                 }
 
-                @media (max-width: 560px) {
-                    #contact-form {
-                        padding: 2rem 1.25rem;
+                @media (max-width: 640px) {
+
+                    /* Section header */
+                    #contact h2 {
+                        font-size: 2rem;
                     }
 
+                    /* Outer wrapper — remove side padding so the form goes edge-to-edge */
+                    #contact > .fade-in-scroll:last-of-type {
+                        padding: 0 0.75rem;
+                    }
+
+                    /* Form card */
+                    #contact-form {
+                        padding: 1.75rem 1.25rem;
+                        gap: 1.25rem;
+                        border-radius: 6px;
+                    }
+
+                    /* Stack name / email / phone vertically */
                     #cf-row-top {
                         grid-template-columns: 1fr;
+                        gap: 1.25rem;
                     }
 
+                    /* Larger inputs for finger-friendly tapping */
+                    .cf-input {
+                        padding: 0.9rem 1rem;
+                        font-size: 1rem; /* 16px — prevents iOS Safari from auto-zooming on input focus */
+                        border-radius: 6px;
+                    }
+
+                    /* Bigger label text for legibility */
+                    .cf-label {
+                        font-size: 0.75rem;
+                        margin-bottom: 0.4rem;
+                    }
+
+                    /* Textarea — give a bit more height so it's easier to type in */
+                    #cf-message {
+                        min-height: 140px;
+                    }
+
+                    /* Submit button — full width, taller tap target */
                     #cf-submit {
                         align-self: stretch;
+                        width: 100%;
+                        padding: 1.1rem 1rem;
+                        font-size: 0.9rem;
+                        border-radius: 6px;
+                    }
+
+                    /* Turnstile widget — center it */
+                    .cf-turnstile {
+                        display: flex;
+                        justify-content: center;
                     }
                 }
             </style>
@@ -528,7 +580,12 @@
     </main>
 
     <footer style="padding: 3rem 0; background: var(--color-bg-primary); border-top: 1px solid rgba(255,255,255,0.05);">
-        <div class="container" style="display: flex; flex-direction: column; align-items: center; gap: 2.5rem;">
+        <div class="container" style="display: flex; flex-direction: column; align-items: center; gap: 2rem;">
+
+            <!-- Footer Logo -->
+            <a href="index.html">
+                <img src="assets/images/logo.png" alt="Your Journey Coach" class="footer-logo">
+            </a>
 
             <!-- Credentials in Footer -->
             <div class="footer-credentials"

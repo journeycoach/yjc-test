@@ -1,8 +1,11 @@
+/* global window */
 import { useEffect } from 'react'
 
 export function ReturnToSite() {
   useEffect(() => {
-    window.location.href = '/'
+    if (typeof window !== 'undefined') {
+      window.location.href = '/'
+    }
   }, [])
   
   return null

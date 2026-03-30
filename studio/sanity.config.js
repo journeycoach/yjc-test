@@ -1,5 +1,6 @@
 import { BookmarkDashboard } from './plugins/BookmarkDashboard'
 import { ReturnToSite } from './plugins/ReturnToSite'
+import { StudioLogo } from './plugins/StudioLogo'
 import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
@@ -12,6 +13,13 @@ export default defineConfig({
   projectId: '9ksnhows',
   dataset: 'production',
   basePath: '/admin',
+
+  studio: {
+    components: {
+      logo: StudioLogo,
+    },
+  },
+
   tools: [
     {
       name: 'bookmark-dashboard',
@@ -31,3 +39,4 @@ export default defineConfig({
     types: schemaTypes,
   },
 })
+

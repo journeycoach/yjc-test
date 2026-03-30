@@ -51,6 +51,13 @@ export default {
         type: 'url',
         hidden: ({ parent }) => parent?.type !== 'Website Link',
       },
+      {
+        name: 'isHidden',
+        title: 'Hidden',
+        type: 'boolean',
+        description: 'When enabled, this resource will NOT appear in the public tools list. It can still be accessed directly via its link.',
+        initialValue: false,
+      },
     ],
   };
   
