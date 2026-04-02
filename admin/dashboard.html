@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Admin</title>
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+  <div class="admin-wrapper">
+    <header class="admin-header">
+      <div class="brand">Your Journey Coach <span>Admin</span></div>
+      <div class="admin-header-actions">
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-page-title">
+        <h1>Dashboard</h1>
+      </div>
+
+      <div class="dashboard-grid">
+        <a href="posts.html" class="dashboard-card">
+          <div class="card-icon">&#x1F4DD;</div>
+          <div class="card-title">Blog Posts</div>
+          <div class="card-desc">Write, edit, and manage blog articles with HTML content editing and live preview.</div>
+        </a>
+        <a href="testimonials.html" class="dashboard-card">
+          <div class="card-icon">&#x1F4AC;</div>
+          <div class="card-title">Testimonials</div>
+          <div class="card-desc">Add and manage client testimonials displayed on the homepage.</div>
+        </a>
+        <a href="tools.html" class="dashboard-card">
+          <div class="card-icon">&#x1F6E0;&#xFE0F;</div>
+          <div class="card-title">Tools &amp; Resources</div>
+          <div class="card-desc">Manage downloadable files and resource links shown on the Resources page.</div>
+        </a>
+        <a href="navigation.html" class="dashboard-card">
+          <div class="card-icon">&#x1F517;</div>
+          <div class="card-title">Navigation</div>
+          <div class="card-desc">Edit the site brand name, nav links, and the CTA button in the header.</div>
+        </a>
+        <a href="bookmarks.html" class="dashboard-card">
+          <div class="card-icon">&#x1F516;</div>
+          <div class="card-title">Bookmarks</div>
+          <div class="card-desc">Organize curated links into categories for the bookmarks section.</div>
+        </a>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin.js"></script>
+  <script>
+    requireAdminAuth();
+  </script>
+</body>
+</html>

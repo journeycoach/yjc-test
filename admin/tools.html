@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tools &amp; Resources — Admin</title>
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+  <div class="admin-wrapper">
+    <header class="admin-header">
+      <div class="brand">Your Journey Coach <span>Admin</span></div>
+      <div class="admin-header-actions">
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-page-title">
+        <h1>Tools &amp; Resources</h1>
+        <a href="dashboard.html" class="back-link">&#8592; Dashboard</a>
+      </div>
+
+      <div class="card">
+        <div class="card-title">All Tools</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Hidden</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="toolsBody">
+            <tr><td colspan="5" class="table-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title" id="formTitle">Add Tool</div>
+        <form id="toolForm">
+          <input type="hidden" id="toolId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="toolTitle">Title</label>
+              <input type="text" id="toolTitle" placeholder="Resource title" required />
+            </div>
+            <div class="form-group">
+              <label for="category">Category</label>
+              <select id="category">
+                <option value="General">General</option>
+                <option value="Enneagram">Enneagram</option>
+                <option value="Leadership">Leadership</option>
+                <option value="Books">Books</option>
+                <option value="Podcasts">Podcasts</option>
+                <option value="Tools">Tools</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" rows="2" placeholder="Brief description..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="toolType">Type</label>
+              <select id="toolType" onchange="toggleUrlFields()">
+                <option value="">— Select type —</option>
+                <option value="file">File Upload</option>
+                <option value="link">Website Link</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="sortOrder">Sort Order</label>
+              <input type="number" id="sortOrder" value="0" min="0" />
+            </div>
+          </div>
+          <div class="form-group" id="fileUrlGroup" style="display:none;">
+            <label for="fileUrl">File URL</label>
+            <input type="url" id="fileUrl" placeholder="https://... URL of the uploaded file" />
+          </div>
+          <div class="form-group" id="externalUrlGroup" style="display:none;">
+            <label for="externalUrl">External URL</label>
+            <input type="url" id="externalUrl" placeholder="https://..." />
+          </div>
+          <div class="form-group">
+            <div class="form-check">
+              <input type="checkbox" id="isHidden" />
+              <label for="isHidden">Hidden (not shown on site)</label>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="saveBtn">Save Tool</button>
+            <button type="button" class="btn btn-secondary" id="cancelBtn" style="display:none;" onclick="resetForm()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin.js"></script>
+  <script>
+    requireAdminAuth();
+
+    let allTools = [];
+    let editingId = null;
+
+    function toggleUrlFields() {
+      const type = document.getElementById('toolType').value;
+      document.getElementById('fileUrlGroup').style.display = type === 'file' ? 'block' : 'none';
+      document.getElementById('externalUrlGroup').style.display = type === 'link' ? 'block' : 'none';
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    async function loadTools() {
+      const res = await adminFetch('/api/admin/tools');
+      const data = await res.json();
+      allTools = data.data || [];
+      const tbody = document.getElementById('toolsBody');
+      if (allTools.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="table-empty">No tools yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = allTools.map(t => `
+        <tr>
+          <td>${escHtml(t.title)}</td>
+          <td class="td-muted">${escHtml(t.category || '—')}</td>
+          <td class="td-muted">${t.type === 'file' ? 'File' : t.type === 'link' ? 'Link' : '—'}</td>
+          <td>${t.is_hidden ? '<span class="badge badge-danger">Hidden</span>' : '<span class="badge badge-muted">Visible</span>'}</td>
+          <td class="td-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editTool(${t.id})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteTool(${t.id})">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function editTool(id) {
+      const t = allTools.find(r => r.id === id);
+      if (!t) return;
+      editingId = id;
+      document.getElementById('toolId').value = id;
+      document.getElementById('toolTitle').value = t.title || '';
+      document.getElementById('category').value = t.category || 'General';
+      document.getElementById('description').value = t.description || '';
+      document.getElementById('toolType').value = t.type || '';
+      document.getElementById('fileUrl').value = t.file_url || '';
+      document.getElementById('externalUrl').value = t.external_url || '';
+      document.getElementById('isHidden').checked = t.is_hidden || false;
+      document.getElementById('sortOrder').value = t.sort_order || 0;
+      toggleUrlFields();
+      document.getElementById('formTitle').textContent = 'Edit Tool';
+      document.getElementById('saveBtn').textContent = 'Update Tool';
+      document.getElementById('cancelBtn').style.display = 'inline-flex';
+      document.getElementById('toolTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function resetForm() {
+      editingId = null;
+      document.getElementById('toolId').value = '';
+      document.getElementById('toolForm').reset();
+      document.getElementById('formTitle').textContent = 'Add Tool';
+      document.getElementById('saveBtn').textContent = 'Save Tool';
+      document.getElementById('cancelBtn').style.display = 'none';
+      toggleUrlFields();
+    }
+
+    async function deleteTool(id) {
+      if (!confirm('Delete this tool? This cannot be undone.')) return;
+      const res = await adminFetch('/api/admin/tools', {
+        method: 'DELETE',
+        body: JSON.stringify({ id })
+      });
+      if (res.ok) {
+        showFlash('Tool deleted.');
+        loadTools();
+      } else {
+        showFlash('Error deleting tool.', 'error');
+      }
+    }
+
+    document.getElementById('toolForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById('toolTitle').value.trim(),
+        category: document.getElementById('category').value,
+        description: document.getElementById('description').value.trim() || null,
+        type: document.getElementById('toolType').value || null,
+        file_url: document.getElementById('fileUrl').value.trim() || null,
+        external_url: document.getElementById('externalUrl').value.trim() || null,
+        is_hidden: document.getElementById('isHidden').checked,
+        sort_order: parseInt(document.getElementById('sortOrder').value) || 0
+      };
+      if (editingId) payload.id = editingId;
+
+      const res = await adminFetch('/api/admin/tools', {
+        method: editingId ? 'PUT' : 'POST',
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showFlash(editingId ? 'Tool updated.' : 'Tool added.');
+        resetForm();
+        loadTools();
+      } else {
+        const err = await res.json();
+        showFlash(err.error || 'Error saving tool.', 'error');
+      }
+    });
+
+    loadTools();
+  </script>
+</body>
+</html>

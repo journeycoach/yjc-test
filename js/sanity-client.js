@@ -1,16 +1,22 @@
-const SANITY_PROJECT_ID = '9ksnhows';
-const SANITY_DATASET = 'production';
-const SANITY_API_VERSION = 'v2024-03-10';
-
-// A lightweight custom client using the native Fetch API to avoid heavy UMD bundle errors
+// Maps old Sanity queries to new API endpoints — drop-in replacement for sanity-client.js
 const sanityClient = {
-    fetch: function(query) {
-        const url = `https://${SANITY_PROJECT_ID}.api.sanity.io/${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodeURIComponent(query)}`;
-        return fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error(`Sanity API error: ${res.status}`);
-                return res.json();
-            })
-            .then(data => data.result);
+  fetch: function(query) {
+    if (query.includes('"testimonial"')) {
+      return fetch('/api/content/testimonials').then(r => r.json()).then(d => d.data || []);
     }
+    if (query.includes('"navigation"')) {
+      return fetch('/api/content/navigation').then(r => r.json()).then(d => d.data || null);
+    }
+    if (query.includes('"tool"')) {
+      return fetch('/api/content/tools').then(r => r.json()).then(d => d.data || []);
+    }
+    if (query.includes('"post"')) {
+      return fetch('/api/content/posts').then(r => r.json()).then(d => d.data || []);
+    }
+    if (query.includes('"bookmark"')) {
+      return fetch('/api/content/bookmarks').then(r => r.json()).then(d => d.data || []);
+    }
+    console.warn('sanityClient: unrecognized query', query);
+    return Promise.resolve([]);
+  }
 };
