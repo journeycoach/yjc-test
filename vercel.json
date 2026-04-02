@@ -1,5 +1,6 @@
 {
   "outputDirectory": ".",
+  "rewrites": [{ "source": "/api/content/:type", "destination": "/api/content?type=:type" }],
   "headers": [
     {
       "source": "/api/(.*)",
