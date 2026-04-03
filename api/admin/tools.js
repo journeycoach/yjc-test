@@ -6,8 +6,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   // Blob client upload endpoint — must come before requireAuth because
-  // Vercel's upload-complete webhook won't carry the Authorization header.
-  // Auth is enforced inside onBeforeGenerateToken via clientPayload.
+  // auth is enforced inside onBeforeGenerateToken via clientPayload.
   if (req.query.action === 'upload') {
     try {
       const jsonResponse = await handleUpload({
@@ -32,9 +31,6 @@ export default async function handler(req, res) {
             ],
             maximumSizeInBytes: 50 * 1024 * 1024, // 50 MB
           };
-        },
-        onUploadCompleted: async ({ blob }) => {
-          console.log('Resource uploaded to Vercel Blob:', blob.url);
         },
       });
       return res.status(200).json(jsonResponse);
