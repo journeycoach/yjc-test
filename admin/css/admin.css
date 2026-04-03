@@ -598,6 +598,67 @@ textarea {
   line-height: 1.5;
 }
 
+.dashboard-summary {
+  margin-top: 32px;
+}
+
+.dashboard-summary-header {
+  margin-bottom: 16px;
+}
+
+.dashboard-summary-header h2 {
+  font-size: 1.15rem;
+  color: var(--admin-text);
+  margin-bottom: 4px;
+}
+
+.dashboard-summary-header p {
+  font-size: 0.85rem;
+  color: var(--admin-muted);
+}
+
+.dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.summary-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  padding: 18px;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+}
+
+.summary-value {
+  font-family: var(--admin-heading-font);
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--admin-accent);
+}
+
+.summary-note {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--admin-muted);
+}
+
+.summary-card-error {
+  grid-column: 1 / -1;
+  min-height: auto;
+}
+
 /* --- Split Panel (table + form side by side) --- */
 .split-panel {
   display: grid;
@@ -616,9 +677,11 @@ textarea {
 @media (max-width: 760px) {
   .split-panel { grid-template-columns: 1fr; }
   .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 480px) {
   .dashboard-grid { grid-template-columns: 1fr; }
+  .dashboard-summary-grid { grid-template-columns: 1fr; }
 }
 
 /* --- Section separator --- */

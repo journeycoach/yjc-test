@@ -23,6 +23,19 @@
       </div>
 
       <div class="dashboard-grid" id="dashGrid"></div>
+
+      <section class="dashboard-summary">
+        <div class="dashboard-summary-header">
+          <h2>Activity Summary</h2>
+          <p>Quick counts from the current admin content and inbox.</p>
+        </div>
+        <div class="dashboard-summary-grid" id="summaryGrid">
+          <div class="summary-card">
+            <div class="summary-label">Loading</div>
+            <div class="summary-value">…</div>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -135,12 +148,84 @@
       });
     }
 
+    function renderSummary(items) {
+      const summaryGrid = document.getElementById('summaryGrid');
+      summaryGrid.innerHTML = items.map(item => `
+        <div class="summary-card">
+          <div class="summary-label">${item.label}</div>
+          <div class="summary-value">${item.value}</div>
+          <div class="summary-note">${item.note}</div>
+        </div>
+      `).join('');
+    }
+
+    async function loadSummary() {
+      const summaryGrid = document.getElementById('summaryGrid');
+
+      try {
+        const [contactsRes, postsRes, toolsRes, sectionsRes] = await Promise.all([
+          adminFetch('/api/admin/contacts'),
+          adminFetch('/api/admin/posts'),
+          adminFetch('/api/admin/tools'),
+          adminFetch('/api/admin/sections')
+        ]);
+
+        if (![contactsRes, postsRes, toolsRes, sectionsRes].every(res => res.ok)) {
+          throw new Error('Failed to load activity summary');
+        }
+
+        const [contactsData, postsData, toolsData, sectionsData] = await Promise.all([
+          contactsRes.json(),
+          postsRes.json(),
+          toolsRes.json(),
+          sectionsRes.json()
+        ]);
+
+        const contacts = contactsData.data || [];
+        const posts = postsData.data || [];
+        const tools = toolsData.data || [];
+        const sections = sectionsData.data || [];
+
+        renderSummary([
+          {
+            label: 'Unread Contacts',
+            value: contacts.filter(contact => !contact.is_read).length,
+            note: 'Messages waiting for follow-up'
+          },
+          {
+            label: 'Total Posts',
+            value: posts.length,
+            note: 'Published and drafted articles'
+          },
+          {
+            label: 'Hidden Resources',
+            value: tools.filter(tool => tool.is_hidden).length,
+            note: 'Resources currently off the site'
+          },
+          {
+            label: 'Draft Sections',
+            value: sections.filter(section => section.status === 'draft').length,
+            note: 'Sections not live yet'
+          }
+        ]);
+      } catch (error) {
+        console.error('Dashboard summary error:', error);
+        summaryGrid.innerHTML = `
+          <div class="summary-card summary-card-error">
+            <div class="summary-label">Activity Summary</div>
+            <div class="summary-note">Unable to load summary right now.</div>
+          </div>
+        `;
+      }
+    }
+
     function resetOrder() {
       localStorage.removeItem(STORAGE_KEY);
       renderGrid();
     }
 
     renderGrid();
+    loadSummary();
   </script>
 </body>
 </html>
