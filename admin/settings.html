@@ -8,6 +8,12 @@
   <style>
     .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
     @media (max-width: 800px) { .settings-grid { grid-template-columns: 1fr; } }
+    .settings-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .settings-tab { background: var(--admin-card-bg); color: var(--admin-muted); border: 1px solid var(--admin-border); border-radius: 999px; padding: 10px 18px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: border-color 0.2s, color 0.2s, background-color 0.2s; }
+    .settings-tab:hover { border-color: var(--admin-accent); color: var(--admin-text); }
+    .settings-tab.is-active { background: var(--admin-accent); color: var(--admin-bg); border-color: var(--admin-accent); }
+    .settings-tab-panel { display: none; }
+    .settings-tab-panel.is-active { display: block; }
     .color-row { display: flex; align-items: center; gap: 12px; }
     .color-row input[type="color"] { width: 48px; height: 36px; padding: 2px; border: 1px solid var(--admin-border); border-radius: 4px; background: none; cursor: pointer; }
     .color-row input[type="text"] { flex: 1; font-family: monospace; }
@@ -39,247 +45,255 @@
 
       <div class="guide-box">
         <strong>About Site Settings</strong>
-        Changes here update the brand colors, typography, and call-to-action buttons across the entire site.
-        The color and font choices apply globally via CSS variables — you don't need to update individual pages.
-        After saving, the live site reflects your changes within seconds.
+        Use the tabs below to switch between public website settings and admin-only appearance settings.
+        Website changes affect the live site. Admin changes only affect this admin interface.
       </div>
 
-      <!-- ── Brand Colors ───────────────────────────────────────────── -->
-      <div class="card">
-        <div class="card-title">Brand Colors</div>
-        <div class="guide-box" style="margin-bottom:20px;">
-          <strong>Tip</strong>
-          Use the color picker or type a hex value directly. The accent gold is your primary brand color —
-          it appears on buttons, links, and highlights. Keep changes subtle to maintain the premium feel.
-        </div>
-
-        <div class="settings-grid">
-          <div class="form-group">
-            <label>Accent / Gold</label>
-            <div class="color-row">
-              <input type="color" id="pick_color_accent" />
-              <input type="text"  id="color_accent" class="form-control" placeholder="#c7a96b" maxlength="7" />
-              <div class="color-swatch" id="sw_color_accent"></div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Green / Secondary</label>
-            <div class="color-row">
-              <input type="color" id="pick_color_green" />
-              <input type="text"  id="color_green" class="form-control" placeholder="#4a6741" maxlength="7" />
-              <div class="color-swatch" id="sw_color_green"></div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Page Background</label>
-            <div class="color-row">
-              <input type="color" id="pick_color_bg" />
-              <input type="text"  id="color_bg" class="form-control" placeholder="#fdfbf7" maxlength="7" />
-              <div class="color-swatch" id="sw_color_bg"></div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Body Text</label>
-            <div class="color-row">
-              <input type="color" id="pick_color_text" />
-              <input type="text"  id="color_text" class="form-control" placeholder="#1c2321" maxlength="7" />
-              <div class="color-swatch" id="sw_color_text"></div>
-            </div>
-          </div>
-        </div>
+      <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+        <button type="button" class="settings-tab is-active" data-tab="website" role="tab" aria-selected="true">Website Settings</button>
+        <button type="button" class="settings-tab" data-tab="admin" role="tab" aria-selected="false">Admin Settings</button>
       </div>
 
-      <!-- ── Typography ─────────────────────────────────────────────── -->
-      <div class="card">
-        <div class="card-title">Typography</div>
-        <div class="guide-box" style="margin-bottom:20px;">
-          <strong>Tip</strong>
-          These fonts must be available on Google Fonts. The heading font appears in titles and section headers.
-          The body font is used for all paragraph text and UI elements. Changing fonts updates the entire site.
-        </div>
-        <div class="settings-grid">
-          <div class="form-group">
-            <label>Heading Font</label>
-            <select id="font_heading" class="form-control">
-              <option value="Playfair Display">Playfair Display (current)</option>
-              <option value="Cormorant Garamond">Cormorant Garamond</option>
-              <option value="Libre Baskerville">Libre Baskerville</option>
-              <option value="Lora">Lora</option>
-              <option value="Merriweather">Merriweather</option>
-              <option value="EB Garamond">EB Garamond</option>
-            </select>
-            <div class="font-preview" id="heading_preview" style="font-family:'Playfair Display',serif;">
-              The quick brown fox — Executive Coaching
-            </div>
+      <section class="settings-tab-panel is-active" data-tab-panel="website" role="tabpanel">
+        <!-- ── Brand Colors ───────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-title">Brand Colors</div>
+          <div class="guide-box" style="margin-bottom:20px;">
+            <strong>Tip</strong>
+            Use the color picker or type a hex value directly. The accent gold is your primary brand color —
+            it appears on buttons, links, and highlights. Keep changes subtle to maintain the premium feel.
           </div>
-          <div class="form-group">
-            <label>Body Font</label>
-            <select id="font_body" class="form-control">
-              <option value="Inter">Inter (current)</option>
-              <option value="DM Sans">DM Sans</option>
-              <option value="Source Sans 3">Source Sans 3</option>
-              <option value="Nunito">Nunito</option>
-              <option value="Open Sans">Open Sans</option>
-              <option value="Lato">Lato</option>
-            </select>
-            <div class="font-preview" id="body_preview" style="font-family:'Inter',sans-serif;">
-              Helping leaders grow with clarity, purpose, and authentic confidence.
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- ── CTA Manager ────────────────────────────────────────────── -->
-      <div class="card">
-        <div class="card-title">Call-to-Action Manager</div>
-        <div class="guide-box" style="margin-bottom:20px;">
-          <strong>About CTAs</strong>
-          The primary CTA is your main button — it appears in the navigation bar and hero sections.
-          The secondary CTA is optional and appears alongside the primary in some sections.
-          Leave the secondary fields blank to hide it. URLs can be internal (e.g. /#contact) or external.
-        </div>
-
-        <div class="section-label">Primary CTA</div>
-        <div class="settings-grid">
-          <div class="form-group">
-            <label>Button Label</label>
-            <input type="text" id="cta_primary_text" class="form-control" placeholder="Let's Talk" />
-          </div>
-          <div class="form-group">
-            <label>Destination URL</label>
-            <input type="text" id="cta_primary_url" class="form-control" placeholder="/#contact" />
-          </div>
-        </div>
-
-        <div class="section-label">Secondary CTA <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></div>
-        <div class="settings-grid">
-          <div class="form-group">
-            <label>Button Label</label>
-            <input type="text" id="cta_secondary_text" class="form-control" placeholder="Learn More" />
-          </div>
-          <div class="form-group">
-            <label>Destination URL</label>
-            <input type="text" id="cta_secondary_url" class="form-control" placeholder="/enneagram.html" />
-          </div>
-        </div>
-
-        <div class="section-label">Preview</div>
-        <div class="cta-preview" id="cta_preview_box">
-          <button class="preview-btn-primary" id="cta_preview_primary">Let's Talk</button>
-          <button class="preview-btn-secondary" id="cta_preview_secondary" style="display:none;">Learn More</button>
-        </div>
-      </div>
-
-      <!-- ── Site Info ──────────────────────────────────────────────── -->
-      <div class="card">
-        <div class="card-title">Site Info</div>
-        <div class="form-group">
-          <label>Tagline <span style="color:#888;font-weight:400;">(shown in footer and meta)</span></label>
-          <input type="text" id="site_tagline" class="form-control" placeholder="Executive Coaching · Enneagram · Leadership" />
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Admin Panel Appearance</div>
-        <div class="guide-box" style="margin-bottom:20px;">
-          <strong>About Admin Appearance</strong>
-          These settings change the look of the admin only. You can customize the admin accent color, background,
-          fonts, and dashboard card layout without affecting the public website. Leave any field blank to use the default admin style.
-        </div>
-
-        <div class="section-label">Admin Colors</div>
-        <div class="settings-grid">
-          <div class="form-group">
-            <label>Accent</label>
-            <div class="color-row">
-              <input type="color" id="pick_admin_color_accent" />
-              <input type="text" id="admin_color_accent" class="form-control" placeholder="#c7a96b" maxlength="7" />
-              <div class="color-swatch" id="sw_admin_color_accent"></div>
+          <div class="settings-grid">
+            <div class="form-group">
+              <label>Accent / Gold</label>
+              <div class="color-row">
+                <input type="color" id="pick_color_accent" />
+                <input type="text"  id="color_accent" class="form-control" placeholder="#c7a96b" maxlength="7" />
+                <div class="color-swatch" id="sw_color_accent"></div>
+              </div>
             </div>
-          </div>
-          <div class="form-group">
-            <label>Background</label>
-            <div class="color-row">
-              <input type="color" id="pick_admin_color_bg" />
-              <input type="text" id="admin_color_bg" class="form-control" placeholder="#1a1d1e" maxlength="7" />
-              <div class="color-swatch" id="sw_admin_color_bg"></div>
+            <div class="form-group">
+              <label>Green / Secondary</label>
+              <div class="color-row">
+                <input type="color" id="pick_color_green" />
+                <input type="text"  id="color_green" class="form-control" placeholder="#4a6741" maxlength="7" />
+                <div class="color-swatch" id="sw_color_green"></div>
+              </div>
             </div>
-          </div>
-          <div class="form-group">
-            <label>Card Background</label>
-            <div class="color-row">
-              <input type="color" id="pick_admin_color_card" />
-              <input type="text" id="admin_color_card" class="form-control" placeholder="#22262a" maxlength="7" />
-              <div class="color-swatch" id="sw_admin_color_card"></div>
+            <div class="form-group">
+              <label>Page Background</label>
+              <div class="color-row">
+                <input type="color" id="pick_color_bg" />
+                <input type="text"  id="color_bg" class="form-control" placeholder="#fdfbf7" maxlength="7" />
+                <div class="color-swatch" id="sw_color_bg"></div>
+              </div>
             </div>
-          </div>
-          <div class="form-group">
-            <label>Text</label>
-            <div class="color-row">
-              <input type="color" id="pick_admin_color_text" />
-              <input type="text" id="admin_color_text" class="form-control" placeholder="#f0ece4" maxlength="7" />
-              <div class="color-swatch" id="sw_admin_color_text"></div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Muted Text</label>
-            <div class="color-row">
-              <input type="color" id="pick_admin_color_muted" />
-              <input type="text" id="admin_color_muted" class="form-control" placeholder="#888888" maxlength="7" />
-              <div class="color-swatch" id="sw_admin_color_muted"></div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Border</label>
-            <div class="color-row">
-              <input type="color" id="pick_admin_color_border" />
-              <input type="text" id="admin_color_border" class="form-control" placeholder="#333333" maxlength="7" />
-              <div class="color-swatch" id="sw_admin_color_border"></div>
+            <div class="form-group">
+              <label>Body Text</label>
+              <div class="color-row">
+                <input type="color" id="pick_color_text" />
+                <input type="text"  id="color_text" class="form-control" placeholder="#1c2321" maxlength="7" />
+                <div class="color-swatch" id="sw_color_text"></div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="section-label">Admin Typography</div>
-        <div class="settings-grid">
-          <div class="form-group">
-            <label>Heading Font</label>
-            <select id="admin_font_heading" class="form-control">
-              <option value="">Default Serif</option>
-              <option value="Playfair Display">Playfair Display</option>
-              <option value="Cormorant Garamond">Cormorant Garamond</option>
-              <option value="Libre Baskerville">Libre Baskerville</option>
-              <option value="Lora">Lora</option>
-              <option value="Merriweather">Merriweather</option>
-              <option value="EB Garamond">EB Garamond</option>
-            </select>
+        <!-- ── Typography ─────────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-title">Typography</div>
+          <div class="guide-box" style="margin-bottom:20px;">
+            <strong>Tip</strong>
+            These fonts must be available on Google Fonts. The heading font appears in titles and section headers.
+            The body font is used for all paragraph text and UI elements. Changing fonts updates the entire site.
           </div>
-          <div class="form-group">
-            <label>Body Font</label>
-            <select id="admin_font_body" class="form-control">
-              <option value="">System UI</option>
-              <option value="Inter">Inter</option>
-              <option value="DM Sans">DM Sans</option>
-              <option value="Source Sans 3">Source Sans 3</option>
-              <option value="Nunito">Nunito</option>
-              <option value="Open Sans">Open Sans</option>
-              <option value="Lato">Lato</option>
-            </select>
+          <div class="settings-grid">
+            <div class="form-group">
+              <label>Heading Font</label>
+              <select id="font_heading" class="form-control">
+                <option value="Playfair Display">Playfair Display (current)</option>
+                <option value="Cormorant Garamond">Cormorant Garamond</option>
+                <option value="Libre Baskerville">Libre Baskerville</option>
+                <option value="Lora">Lora</option>
+                <option value="Merriweather">Merriweather</option>
+                <option value="EB Garamond">EB Garamond</option>
+              </select>
+              <div class="font-preview" id="heading_preview" style="font-family:'Playfair Display',serif;">
+                The quick brown fox — Executive Coaching
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Body Font</label>
+              <select id="font_body" class="form-control">
+                <option value="Inter">Inter (current)</option>
+                <option value="DM Sans">DM Sans</option>
+                <option value="Source Sans 3">Source Sans 3</option>
+                <option value="Nunito">Nunito</option>
+                <option value="Open Sans">Open Sans</option>
+                <option value="Lato">Lato</option>
+              </select>
+              <div class="font-preview" id="body_preview" style="font-family:'Inter',sans-serif;">
+                Helping leaders grow with clarity, purpose, and authentic confidence.
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="section-label">Dashboard Layout</div>
-        <div class="settings-grid">
-          <div class="form-group">
-            <label>Cards Per Row</label>
-            <select id="admin_dashboard_columns" class="form-control">
-              <option value="2">2 columns</option>
-              <option value="3">3 columns</option>
-              <option value="4">4 columns</option>
-            </select>
-            <div class="form-hint">Mobile widths still collapse automatically for readability.</div>
+        <!-- ── CTA Manager ────────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-title">Call-to-Action Manager</div>
+          <div class="guide-box" style="margin-bottom:20px;">
+            <strong>About CTAs</strong>
+            The primary CTA is your main button — it appears in the navigation bar and hero sections.
+            The secondary CTA is optional and appears alongside the primary in some sections.
+            Leave the secondary fields blank to hide it. URLs can be internal (e.g. /#contact) or external.
+          </div>
+
+          <div class="section-label">Primary CTA</div>
+          <div class="settings-grid">
+            <div class="form-group">
+              <label>Button Label</label>
+              <input type="text" id="cta_primary_text" class="form-control" placeholder="Let's Talk" />
+            </div>
+            <div class="form-group">
+              <label>Destination URL</label>
+              <input type="text" id="cta_primary_url" class="form-control" placeholder="/#contact" />
+            </div>
+          </div>
+
+          <div class="section-label">Secondary CTA <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></div>
+          <div class="settings-grid">
+            <div class="form-group">
+              <label>Button Label</label>
+              <input type="text" id="cta_secondary_text" class="form-control" placeholder="Learn More" />
+            </div>
+            <div class="form-group">
+              <label>Destination URL</label>
+              <input type="text" id="cta_secondary_url" class="form-control" placeholder="/enneagram.html" />
+            </div>
+          </div>
+
+          <div class="section-label">Preview</div>
+          <div class="cta-preview" id="cta_preview_box">
+            <button class="preview-btn-primary" id="cta_preview_primary">Let's Talk</button>
+            <button class="preview-btn-secondary" id="cta_preview_secondary" style="display:none;">Learn More</button>
           </div>
         </div>
-      </div>
+
+        <!-- ── Site Info ──────────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-title">Site Info</div>
+          <div class="form-group">
+            <label>Tagline <span style="color:#888;font-weight:400;">(shown in footer and meta)</span></label>
+            <input type="text" id="site_tagline" class="form-control" placeholder="Executive Coaching · Enneagram · Leadership" />
+          </div>
+        </div>
+      </section>
+
+      <section class="settings-tab-panel" data-tab-panel="admin" role="tabpanel">
+        <div class="card">
+          <div class="card-title">Admin Panel Appearance</div>
+          <div class="guide-box" style="margin-bottom:20px;">
+            <strong>About Admin Appearance</strong>
+            These settings change the look of the admin only. You can customize the admin accent color, background,
+            fonts, and dashboard card layout without affecting the public website. Leave any field blank to use the default admin style.
+          </div>
+
+          <div class="section-label">Admin Colors</div>
+          <div class="settings-grid">
+            <div class="form-group">
+              <label>Accent</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_color_accent" />
+                <input type="text" id="admin_color_accent" class="form-control" placeholder="#c7a96b" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_color_accent"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Background</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_color_bg" />
+                <input type="text" id="admin_color_bg" class="form-control" placeholder="#1a1d1e" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_color_bg"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Card Background</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_color_card" />
+                <input type="text" id="admin_color_card" class="form-control" placeholder="#22262a" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_color_card"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Text</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_color_text" />
+                <input type="text" id="admin_color_text" class="form-control" placeholder="#f0ece4" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_color_text"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Muted Text</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_color_muted" />
+                <input type="text" id="admin_color_muted" class="form-control" placeholder="#888888" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_color_muted"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Border</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_color_border" />
+                <input type="text" id="admin_color_border" class="form-control" placeholder="#333333" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_color_border"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">Admin Typography</div>
+          <div class="settings-grid">
+            <div class="form-group">
+              <label>Heading Font</label>
+              <select id="admin_font_heading" class="form-control">
+                <option value="">Default Serif</option>
+                <option value="Playfair Display">Playfair Display</option>
+                <option value="Cormorant Garamond">Cormorant Garamond</option>
+                <option value="Libre Baskerville">Libre Baskerville</option>
+                <option value="Lora">Lora</option>
+                <option value="Merriweather">Merriweather</option>
+                <option value="EB Garamond">EB Garamond</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Body Font</label>
+              <select id="admin_font_body" class="form-control">
+                <option value="">System UI</option>
+                <option value="Inter">Inter</option>
+                <option value="DM Sans">DM Sans</option>
+                <option value="Source Sans 3">Source Sans 3</option>
+                <option value="Nunito">Nunito</option>
+                <option value="Open Sans">Open Sans</option>
+                <option value="Lato">Lato</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="section-label">Dashboard Layout</div>
+          <div class="settings-grid">
+            <div class="form-group">
+              <label>Cards Per Row</label>
+              <select id="admin_dashboard_columns" class="form-control">
+                <option value="2">2 columns</option>
+                <option value="3">3 columns</option>
+                <option value="4">4 columns</option>
+              </select>
+              <div class="form-hint">Mobile widths still collapse automatically for readability.</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div class="save-bar">
         <button class="btn btn-primary" onclick="saveAll()">Save All Settings</button>
@@ -293,6 +307,7 @@
     requireAdminAuth();
 
     let settings = {};
+    let activeTab = 'website';
 
     // ── Color sync: picker ↔ text ↔ swatch ─────────────────────────────────
     const siteColorKeys = ['color_accent', 'color_green', 'color_bg', 'color_text'];
@@ -362,6 +377,22 @@
       document.getElementById('cta_preview_secondary').textContent = sText;
       document.getElementById('cta_preview_secondary').style.display = sText ? 'inline-block' : 'none';
     }
+
+    function setActiveTab(tabName) {
+      activeTab = tabName;
+      document.querySelectorAll('.settings-tab').forEach(button => {
+        const isActive = button.dataset.tab === tabName;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      document.querySelectorAll('.settings-tab-panel').forEach(panel => {
+        panel.classList.toggle('is-active', panel.dataset.tabPanel === tabName);
+      });
+    }
+
+    document.querySelectorAll('.settings-tab').forEach(button => {
+      button.addEventListener('click', () => setActiveTab(button.dataset.tab));
+    });
 
     // ── Load settings ────────────────────────────────────────────────────────
     async function loadSettings() {
