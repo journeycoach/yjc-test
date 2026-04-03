@@ -523,6 +523,36 @@ textarea {
   margin-top: 8px;
 }
 
+.dashboard-quick-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 4px 0 18px;
+}
+
+.quick-action-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--admin-accent) 24%, var(--admin-border));
+  background: color-mix(in srgb, var(--admin-accent) 10%, transparent);
+  color: var(--admin-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.quick-action-pill:hover {
+  border-color: var(--admin-accent);
+  background: color-mix(in srgb, var(--admin-accent) 18%, transparent);
+  color: var(--admin-accent);
+  text-decoration: none;
+}
+
 .dashboard-card {
   background-color: var(--admin-card-bg);
   border: 1px solid var(--admin-border);
