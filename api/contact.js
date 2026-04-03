@@ -1,4 +1,5 @@
 import { sql } from './_db.js';
+import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
   try {
@@ -60,11 +61,11 @@ export default async function handler(req, res) {
       // Continue — still attempt email even if DB write fails
     }
 
-    const apiKey = process.env.RESEND_API_KEY;
+    const smtpPassword = process.env.SMTP_PASSWORD;
     const toEmail = process.env.CONTACT_EMAIL;
 
-    if (!apiKey || !toEmail) {
-      console.error('Missing RESEND_API_KEY or CONTACT_EMAIL environment variable.');
+    if (!smtpPassword || !toEmail) {
+      console.error('Missing SMTP_PASSWORD or CONTACT_EMAIL environment variable.');
       return res.status(500).json({ error: 'Server configuration error. Please try again later.' });
     }
 
@@ -102,29 +103,23 @@ export default async function handler(req, res) {
       </div>
     `;
 
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.forwardemail.net',
+      port: 465,
+      secure: true,
+      auth: {
+        user: 'hello@yourjourneycoach.com',
+        pass: smtpPassword,
       },
-      body: JSON.stringify({
-        // ── Sender ────────────────────────────────────────────────────────────
-        // Sandbox sender — swap to noreply@yourjourneycoach.com once domain is verified in Resend
-        from: 'Your Journey Coach <onboarding@resend.dev>',
-        // ─────────────────────────────────────────────────────────────────────
-        to: [toEmail],
-        reply_to: email,
-        subject: `New Inquiry from ${name}`,
-        html,
-      }),
     });
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('Resend API error:', response.status, errorBody);
-      return res.status(502).json({ error: 'Failed to send email. Please try again later.' });
-    }
+    await transporter.sendMail({
+      from: 'Your Journey Coach <hello@yourjourneycoach.com>',
+      to: toEmail,
+      replyTo: email,
+      subject: `New Inquiry from ${name}`,
+      html,
+    });
 
     return res.status(200).json({ ok: true });
   } catch (err) {
