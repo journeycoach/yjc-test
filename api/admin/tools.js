@@ -14,8 +14,8 @@ export default async function handler(req, res) {
         body: req.body,
         request: req,
         onBeforeGenerateToken: async (_pathname, clientPayload) => {
-          const token = JSON.parse(clientPayload || 'null');
-          if (!verifyToken(token)) throw new Error('Unauthorized');
+          // clientPayload is the raw admin token string
+          if (!verifyToken(clientPayload || '')) throw new Error('Unauthorized');
           return {
             allowedContentTypes: [
               'application/pdf',

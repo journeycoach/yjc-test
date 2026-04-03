@@ -47,12 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const linkUrl = isFile ? tool.file_url : tool.external_url;
                     const isBooksCategory = (categoryName || '').toLowerCase() === 'books';
                     const renderImageOnly = isBooksCategory && !!tool.image_url;
+                    const renderTextAboveImage = !renderImageOnly && tool.type === 'link' && !!tool.image_url;
 
                     // Do not render empty cards if URL is broken
                     if (!linkUrl) return;
 
                     const card = document.createElement('a');
-                    card.className = `tool-card${renderImageOnly ? ' image-only' : ''}`;
+                    card.className = `tool-card${renderImageOnly ? ' image-only' : ''}${renderTextAboveImage ? ' link-with-image' : ''}`;
                     card.href = linkUrl;
                     card.target = "_blank";
                     card.rel = "noopener noreferrer";
@@ -66,15 +67,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         const badgeClass = isFile ? 'pdf' : 'link';
                         const badgeText = isFile ? 'PDF Download' : 'External Link';
-
-                        card.innerHTML = `
-                            ${tool.image_url ? `<img class="tool-card-image" src="${tool.image_url}" alt="${tool.title}" loading="lazy">` : ''}
+                        const imageMarkup = tool.image_url ? `<img class="tool-card-image" src="${tool.image_url}" alt="${tool.title}" loading="lazy">` : '';
+                        const bodyMarkup = `
                             <div class="tool-card-body">
                                 <span class="tool-type-badge ${badgeClass}">${badgeText}</span>
                                 <h3>${tool.title}</h3>
                                 ${tool.description ? `<p>${tool.description}</p>` : ''}
                             </div>
                         `;
+
+                        card.innerHTML = renderTextAboveImage
+                            ? `${bodyMarkup}${imageMarkup}`
+                            : `${imageMarkup}${bodyMarkup}`;
                     }
 
                     grid.appendChild(card);
