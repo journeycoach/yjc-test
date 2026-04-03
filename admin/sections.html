@@ -53,9 +53,9 @@
     .detail-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     @media (max-width: 600px) { .detail-row { grid-template-columns: 1fr; } }
 
-    .guide-box { background: #1e2a1e; border-left: 3px solid #4caf7d; border-radius: 4px;
-                 padding: 14px 18px; margin-bottom: 24px; font-size: 0.875rem; color: #aacfaa; line-height: 1.6; }
-    .guide-box strong { color: #4caf7d; display: block; margin-bottom: 4px; }
+    .guide-box { background: var(--admin-notice-bg); border-left: 3px solid var(--admin-notice-accent); border-radius: 4px;
+                 padding: 14px 18px; margin-bottom: 24px; font-size: 0.875rem; color: var(--admin-notice-text); line-height: 1.6; }
+    .guide-box strong { color: var(--admin-notice-accent); display: block; margin-bottom: 4px; }
 
     .save-order-bar { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
     .order-changed-badge { font-size: 0.8rem; color: #c7a96b; display: none; }

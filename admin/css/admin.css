@@ -17,6 +17,9 @@
   --admin-accent-faint: rgba(199, 169, 107, 0.06);
   --admin-danger: #e05c5c;
   --admin-success: #4caf7d;
+  --admin-notice-bg: #1e2a1e;
+  --admin-notice-text: #aacfaa;
+  --admin-notice-accent: #4caf7d;
   --admin-heading-font: Georgia, "Times New Roman", serif;
   --admin-body-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --admin-dashboard-columns: 3;
@@ -427,8 +430,8 @@ textarea {
 
 .flash-success {
   background-color: rgba(76, 175, 125, 0.2);
-  border: 1px solid #4caf7d;
-  color: #4caf7d;
+  border: 1px solid var(--admin-success);
+  color: var(--admin-success);
 }
 
 .flash-error {

@@ -18,8 +18,8 @@
     .color-row input[type="color"] { width: 48px; height: 36px; padding: 2px; border: 1px solid var(--admin-border); border-radius: 4px; background: none; cursor: pointer; }
     .color-row input[type="text"] { flex: 1; font-family: monospace; }
     .color-swatch { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--admin-border); flex-shrink: 0; }
-    .guide-box { background: #1e2a1e; border-left: 3px solid #4caf7d; border-radius: 4px; padding: 14px 18px; margin-bottom: 24px; font-size: 0.875rem; color: #aacfaa; line-height: 1.6; }
-    .guide-box strong { color: #4caf7d; display: block; margin-bottom: 4px; }
+    .guide-box { background: var(--admin-notice-bg); border-left: 3px solid var(--admin-notice-accent); border-radius: 4px; padding: 14px 18px; margin-bottom: 24px; font-size: 0.875rem; color: var(--admin-notice-text); line-height: 1.6; }
+    .guide-box strong { color: var(--admin-notice-accent); display: block; margin-bottom: 4px; }
     .section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--admin-muted); margin: 28px 0 12px; border-bottom: 1px solid var(--admin-border); padding-bottom: 6px; }
     .cta-preview { background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 6px; padding: 20px; margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
     .preview-btn-primary { background: var(--preview-accent, #c7a96b); color: #1a1d1e; padding: 10px 24px; border-radius: 4px; font-weight: 600; font-size: 0.875rem; border: none; cursor: default; }
@@ -250,6 +250,30 @@
                 <div class="color-swatch" id="sw_admin_color_border"></div>
               </div>
             </div>
+            <div class="form-group">
+              <label>Notice Background</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_notice_bg" />
+                <input type="text" id="admin_notice_bg" class="form-control" placeholder="#1e2a1e" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_notice_bg"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Notice Text</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_notice_text" />
+                <input type="text" id="admin_notice_text" class="form-control" placeholder="#aacfaa" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_notice_text"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Notice Accent</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_notice_accent" />
+                <input type="text" id="admin_notice_accent" class="form-control" placeholder="#4caf7d" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_notice_accent"></div>
+              </div>
+            </div>
           </div>
 
           <div class="section-label">Admin Typography</div>
@@ -317,7 +341,10 @@
       'admin_color_card',
       'admin_color_text',
       'admin_color_muted',
-      'admin_color_border'
+      'admin_color_border',
+      'admin_notice_bg',
+      'admin_notice_text',
+      'admin_notice_accent'
     ];
     const colorKeys = [...siteColorKeys, ...adminColorKeys];
     colorKeys.forEach(key => {

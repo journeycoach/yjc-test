@@ -9,6 +9,9 @@ const ADMIN_THEME_SETTING_KEYS = [
   'admin_color_text',
   'admin_color_muted',
   'admin_color_border',
+  'admin_notice_bg',
+  'admin_notice_text',
+  'admin_notice_accent',
   'admin_font_heading',
   'admin_font_body',
   'admin_dashboard_columns'
@@ -85,7 +88,10 @@ function applyAdminTheme(settings = {}) {
     admin_color_card: '--admin-card-bg',
     admin_color_text: '--admin-text',
     admin_color_muted: '--admin-muted',
-    admin_color_border: '--admin-border'
+    admin_color_border: '--admin-border',
+    admin_notice_bg: '--admin-notice-bg',
+    admin_notice_text: '--admin-notice-text',
+    admin_notice_accent: '--admin-notice-accent'
   };
 
   [
@@ -96,6 +102,9 @@ function applyAdminTheme(settings = {}) {
     '--admin-text',
     '--admin-muted',
     '--admin-border',
+    '--admin-notice-bg',
+    '--admin-notice-text',
+    '--admin-notice-accent',
     '--admin-accent-soft',
     '--admin-accent-faint',
     '--admin-heading-font',
