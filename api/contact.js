@@ -97,7 +97,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         // ── Sender ────────────────────────────────────────────────────────────
-        from: 'Your Journey Coach <noreply@yourjourneycoach.com>',
+        // Sandbox sender — swap to noreply@yourjourneycoach.com once domain is verified in Resend
+        from: 'Your Journey Coach <onboarding@resend.dev>',
         // ─────────────────────────────────────────────────────────────────────
         to: [toEmail],
         reply_to: email,
@@ -109,8 +110,7 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorBody = await response.text();
       console.error('Resend API error:', response.status, errorBody);
-      // TEMP: return Resend error details for diagnosis — remove before launch
-      return res.status(502).json({ error: `Resend ${response.status}: ${errorBody}` });
+      return res.status(502).json({ error: 'Failed to send email. Please try again later.' });
     }
 
     return res.status(200).json({ ok: true });
