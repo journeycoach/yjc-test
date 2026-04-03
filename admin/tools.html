@@ -169,7 +169,7 @@
       return upload(file.name, file, {
         access: 'public',
         handleUploadUrl: '/api/admin/tools?action=upload',
-        clientPayload: JSON.stringify(token),
+        clientPayload: token,
         ...options,
       });
     }
