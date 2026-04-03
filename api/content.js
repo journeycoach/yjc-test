@@ -29,7 +29,8 @@ export default async function handler(req, res) {
           SELECT id, title, category, description, type,
             file_url as "fileUrl",
             external_url,
-            is_hidden as "isHidden"
+            is_hidden as "isHidden",
+            image_url
           FROM tools
           ORDER BY sort_order ASC, created_at ASC
         `;

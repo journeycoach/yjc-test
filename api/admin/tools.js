@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const rows = await sql`
-        SELECT id, title, category, description, type, file_url, external_url, is_hidden, sort_order, created_at
+        SELECT id, title, category, description, type, file_url, external_url, image_url, is_hidden, sort_order, created_at
         FROM tools
         ORDER BY sort_order ASC, created_at ASC
       `;
@@ -20,11 +20,11 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { title, category = 'General', description, type, file_url, external_url, is_hidden = false, sort_order = 0 } = req.body || {};
+    const { title, category = 'General', description, type, file_url, external_url, image_url, is_hidden = false, sort_order = 0 } = req.body || {};
     if (!title) return res.status(400).json({ error: 'title is required' });
     try {
       const rows = await sql`
-        INSERT INTO tools (title, category, description, type, file_url, external_url, is_hidden, sort_order)
+        INSERT INTO tools (title, category, description, type, file_url, external_url, image_url, is_hidden, sort_order)
         VALUES (
           ${title},
           ${category},
@@ -32,6 +32,7 @@ export default async function handler(req, res) {
           ${type || null},
           ${file_url || null},
           ${external_url || null},
+          ${image_url || null},
           ${is_hidden},
           ${sort_order}
         )
@@ -45,7 +46,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'PUT') {
-    const { id, title, category, description, type, file_url, external_url, is_hidden, sort_order } = req.body || {};
+    const { id, title, category, description, type, file_url, external_url, image_url, is_hidden, sort_order } = req.body || {};
     if (!id) return res.status(400).json({ error: 'id is required' });
     try {
       const rows = await sql`
@@ -57,6 +58,7 @@ export default async function handler(req, res) {
           type = COALESCE(${type}, type),
           file_url = COALESCE(${file_url !== undefined ? file_url : null}, file_url),
           external_url = COALESCE(${external_url !== undefined ? external_url : null}, external_url),
+          image_url = COALESCE(${image_url !== undefined ? image_url : null}, image_url),
           is_hidden = COALESCE(${is_hidden !== undefined ? is_hidden : null}, is_hidden),
           sort_order = COALESCE(${sort_order !== undefined ? sort_order : null}, sort_order)
         WHERE id = ${id}

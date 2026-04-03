@@ -54,12 +54,21 @@ async function setup() {
         type VARCHAR(50),
         file_url TEXT,
         external_url TEXT,
+        image_url TEXT,
         is_hidden BOOLEAN DEFAULT FALSE,
         sort_order INTEGER DEFAULT 0,
         created_at TIMESTAMPTZ DEFAULT NOW()
       )
     `;
     console.log('✓ tools table ready');
+  } catch (err) {
+    console.error('✗ Failed to create tools table:', err.message);
+  }
+
+  // Add image_url to tools if it doesn't exist yet (safe to run on existing installs)
+  try {
+    await sql`ALTER TABLE tools ADD COLUMN IF NOT EXISTS image_url TEXT`;
+    console.log('✓ tools.image_url column ensured');
   } catch (err) {
     console.error('✗ Failed to create tools table:', err.message);
   }

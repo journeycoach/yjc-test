@@ -52,27 +52,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     const badgeClass = isFile ? 'pdf' : 'link';
                     const badgeText = isFile ? 'PDF Download' : 'External Link';
 
-                    const actionText = isFile ? 'Download File' : 'Visit Site';
-                    const actionIcon = isFile
-                        ? `<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>`
-                        : `<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>`;
-
                     const card = document.createElement('a');
                     card.className = 'tool-card';
                     card.href = linkUrl;
-                    card.target = "_blank"; // Always open tools in a new tab
+                    card.target = "_blank";
                     card.rel = "noopener noreferrer";
 
                     card.innerHTML = `
-                        <div>
+                        ${tool.image_url ? `<img class="tool-card-image" src="${tool.image_url}" alt="${tool.title}" loading="lazy">` : ''}
+                        <div class="tool-card-body">
                             <span class="tool-type-badge ${badgeClass}">${badgeText}</span>
                             <h3>${tool.title}</h3>
-                            <p>${tool.description || ''}</p>
+                            ${tool.description ? `<p>${tool.description}</p>` : ''}
                         </div>
-                        <span class="tool-action">
-                            ${actionIcon}
-                            ${actionText}
-                        </span>
                     `;
 
                     grid.appendChild(card);
