@@ -17,6 +17,7 @@
   --admin-accent-faint: rgba(199, 169, 107, 0.06);
   --admin-danger: #e05c5c;
   --admin-success: #4caf7d;
+  --admin-success-bg: #1e3a2a;
   --admin-notice-bg: #1e2a1e;
   --admin-notice-text: #aacfaa;
   --admin-notice-accent: #4caf7d;
@@ -429,7 +430,7 @@ textarea {
 }
 
 .flash-success {
-  background-color: rgba(76, 175, 125, 0.2);
+  background-color: var(--admin-success-bg);
   border: 1px solid var(--admin-success);
   color: var(--admin-success);
 }

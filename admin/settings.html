@@ -26,6 +26,7 @@
     .preview-btn-secondary { background: transparent; color: var(--preview-accent, #c7a96b); padding: 10px 24px; border-radius: 4px; font-weight: 600; font-size: 0.875rem; border: 2px solid var(--preview-accent, #c7a96b); cursor: default; }
     .font-preview { padding: 10px 0; font-size: 1.1rem; }
     .save-bar { position: sticky; bottom: 0; background: var(--admin-card-bg); border-top: 1px solid var(--admin-border); padding: 16px 24px; display: flex; align-items: center; gap: 16px; margin: 32px -24px -24px; }
+    .admin-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -251,6 +252,22 @@
               </div>
             </div>
             <div class="form-group">
+              <label>Success Accent</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_success" />
+                <input type="text" id="admin_success" class="form-control" placeholder="#4caf7d" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_success"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Success Background</label>
+              <div class="color-row">
+                <input type="color" id="pick_admin_success_bg" />
+                <input type="text" id="admin_success_bg" class="form-control" placeholder="#1e3a2a" maxlength="7" />
+                <div class="color-swatch" id="sw_admin_success_bg"></div>
+              </div>
+            </div>
+            <div class="form-group">
               <label>Notice Background</label>
               <div class="color-row">
                 <input type="color" id="pick_admin_notice_bg" />
@@ -316,6 +333,11 @@
               <div class="form-hint">Mobile widths still collapse automatically for readability.</div>
             </div>
           </div>
+
+          <div class="admin-actions">
+            <button type="button" class="btn btn-ghost" onclick="resetAdminAppearance()">Reset Admin Appearance</button>
+            <span style="color:var(--admin-muted);font-size:0.8rem;">Clears the admin-only theme settings and restores the default look.</span>
+          </div>
         </div>
       </section>
 
@@ -342,10 +364,31 @@
       'admin_color_text',
       'admin_color_muted',
       'admin_color_border',
+      'admin_success',
+      'admin_success_bg',
       'admin_notice_bg',
       'admin_notice_text',
       'admin_notice_accent'
     ];
+    const adminAppearanceKeys = [
+      ...adminColorKeys,
+      'admin_font_heading',
+      'admin_font_body',
+      'admin_dashboard_columns'
+    ];
+    const adminAppearanceColorDefaults = {
+      admin_color_accent: '#c7a96b',
+      admin_color_bg: '#1a1d1e',
+      admin_color_card: '#22262a',
+      admin_color_text: '#f0ece4',
+      admin_color_muted: '#888888',
+      admin_color_border: '#333333',
+      admin_success: '#4caf7d',
+      admin_success_bg: '#1e3a2a',
+      admin_notice_bg: '#1e2a1e',
+      admin_notice_text: '#aacfaa',
+      admin_notice_accent: '#4caf7d'
+    };
     const colorKeys = [...siteColorKeys, ...adminColorKeys];
     colorKeys.forEach(key => {
       const picker = document.getElementById('pick_' + key);
@@ -421,6 +464,50 @@
       button.addEventListener('click', () => setActiveTab(button.dataset.tab));
     });
 
+    function setColorControl(key, value = '') {
+      const picker = document.getElementById('pick_' + key);
+      const text = document.getElementById(key);
+      const swatch = document.getElementById('sw_' + key);
+      const fallback = adminAppearanceColorDefaults[key] || '#000000';
+      picker.value = /^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback;
+      text.value = value;
+      swatch.style.background = /^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback;
+    }
+
+    async function persistSettings(payload, successMessage = 'Settings saved.') {
+      const status = document.getElementById('save_status');
+      status.textContent = 'Saving…';
+      const res = await adminFetch('/api/admin/settings', { method: 'PUT', body: JSON.stringify(payload) });
+      if (res.ok) {
+        applyAdminTheme(payload);
+        cacheAdminTheme(payload);
+        showFlash(successMessage);
+        status.textContent = 'Saved ✓';
+        setTimeout(() => status.textContent = '', 3000);
+        return true;
+      }
+
+      showFlash('Error saving settings.', 'error');
+      status.textContent = '';
+      return false;
+    }
+
+    async function resetAdminAppearance() {
+      if (!confirm('Reset the admin appearance to the default look?')) return;
+
+      adminColorKeys.forEach(key => setColorControl(key, ''));
+      document.getElementById('admin_font_heading').value = '';
+      document.getElementById('admin_font_body').value = '';
+      document.getElementById('admin_dashboard_columns').value = '3';
+
+      const payload = Object.fromEntries(adminAppearanceKeys.map(key => [
+        key,
+        key === 'admin_dashboard_columns' ? '3' : ''
+      ]));
+
+      await persistSettings(payload, 'Admin appearance reset.');
+    }
+
     // ── Load settings ────────────────────────────────────────────────────────
     async function loadSettings() {
       const res  = await adminFetch('/api/admin/settings');
@@ -429,14 +516,7 @@
 
       colorKeys.forEach(key => {
         const val = settings[key] || '';
-        const picker = document.getElementById('pick_' + key);
-        const text   = document.getElementById(key);
-        const swatch = document.getElementById('sw_' + key);
-        if (val) {
-          picker.value = val;
-          text.value   = val;
-          swatch.style.background = val;
-        }
+        setColorControl(key, val);
         if (key === 'color_accent' && val) {
           document.documentElement.style.setProperty('--preview-accent', val);
         }
@@ -480,20 +560,7 @@
       payload.admin_font_body = document.getElementById('admin_font_body').value;
       payload.admin_dashboard_columns = document.getElementById('admin_dashboard_columns').value;
       adminColorKeys.forEach(key => { payload[key] = document.getElementById(key).value.trim(); });
-
-      const status = document.getElementById('save_status');
-      status.textContent = 'Saving…';
-      const res = await adminFetch('/api/admin/settings', { method: 'PUT', body: JSON.stringify(payload) });
-      if (res.ok) {
-        applyAdminTheme(payload);
-        cacheAdminTheme(payload);
-        showFlash('Settings saved.');
-        status.textContent = 'Saved ✓';
-        setTimeout(() => status.textContent = '', 3000);
-      } else {
-        showFlash('Error saving settings.', 'error');
-        status.textContent = '';
-      }
+      await persistSettings(payload);
     }
 
     loadSettings();

@@ -35,13 +35,13 @@
                      transition: background 0.2s; flex-shrink: 0; }
     .toggle-slider::after { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%;
                              background: #fff; top: 3px; left: 3px; transition: transform 0.2s; }
-    .toggle-wrap input:checked + .toggle-slider { background: #4caf7d; }
+    .toggle-wrap input:checked + .toggle-slider { background: var(--admin-success); }
     .toggle-wrap input:checked + .toggle-slider::after { transform: translateX(18px); }
     .toggle-label { font-size: 0.8rem; color: #888; width: 56px; }
 
     .status-badge { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
                     padding: 3px 8px; border-radius: 10px; }
-    .status-published { background: #1e3a2a; color: #4caf7d; }
+    .status-published { background: var(--admin-success-bg); color: var(--admin-success); }
     .status-draft { background: #3a2a1e; color: #c7a96b; }
 
     .btn-expand { background: none; border: 1px solid #444; color: #888; border-radius: 4px;
