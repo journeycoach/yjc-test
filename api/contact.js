@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Please provide a valid email address.' });
     }
 
-    // Save to database first — so no submission is ever lost even if email fails
+    // Save to database — this is the source of truth; email is best-effort
     try {
       await sql`
         INSERT INTO contact_submissions (name, email, phone, interest, message)
@@ -58,68 +58,69 @@ export default async function handler(req, res) {
       `;
     } catch (dbErr) {
       console.error('Failed to save submission to DB:', dbErr);
-      // Continue — still attempt email even if DB write fails
+      return res.status(500).json({ error: 'Could not save your submission. Please try again.' });
     }
 
-    const smtpPassword = process.env.SMTP_PASSWORD;
-    const toEmail = process.env.CONTACT_EMAIL;
+    // Attempt email notification — failure does NOT affect the 200 response
+    try {
+      const smtpPassword = process.env.SMTP_PASSWORD;
+      const toEmail = process.env.CONTACT_EMAIL;
 
-    if (!smtpPassword || !toEmail) {
-      console.error('Missing SMTP_PASSWORD or CONTACT_EMAIL environment variable.');
-      return res.status(500).json({ error: 'Server configuration error. Please try again later.' });
+      if (!smtpPassword || !toEmail) {
+        console.error('Missing SMTP_PASSWORD or CONTACT_EMAIL — skipping email notification.');
+      } else {
+        const html = `
+          <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; color: #1a1d1e; background: #fff; padding: 32px; border-radius: 8px;">
+            <h2 style="color: #c7a96b; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 16px;">
+              New Inquiry — Your Journey Coach
+            </h2>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; width: 140px; vertical-align: top; color: #555;">Name</td>
+                <td style="padding: 10px 0;">${escapeHtml(name)}</td>
+              </tr>
+              <tr style="background: #f9f9f9;">
+                <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Email</td>
+                <td style="padding: 10px 0;"><a href="mailto:${escapeHtml(email)}" style="color: #c7a96b;">${escapeHtml(email)}</a></td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Phone</td>
+                <td style="padding: 10px 0;">${escapeHtml(phone)}</td>
+              </tr>
+              <tr style="background: #f9f9f9;">
+                <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Area of Interest</td>
+                <td style="padding: 10px 0;">${escapeHtml(interest)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Message</td>
+                <td style="padding: 10px 0; white-space: pre-wrap;">${escapeHtml(message)}</td>
+              </tr>
+            </table>
+            <p style="color: #999; font-size: 0.85rem; margin-bottom: 0;">
+              Sent via yourjourneycoach.com contact form · ${new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })} ET
+            </p>
+          </div>
+        `;
+
+        const transporter = nodemailer.createTransport({
+          host: 'smtp.forwardemail.net',
+          port: 465,
+          secure: true,
+          auth: { user: 'hello@yourjourneycoach.com', pass: smtpPassword },
+        });
+
+        await transporter.sendMail({
+          from: 'Your Journey Coach <hello@yourjourneycoach.com>',
+          to: toEmail,
+          replyTo: email,
+          subject: `New Inquiry from ${name}`,
+          html,
+        });
+      }
+    } catch (emailErr) {
+      // Log but do not fail — submission is already saved to the database
+      console.error('Email notification failed (submission was saved):', emailErr.message);
     }
-
-    // Build the email HTML
-    const html = `
-      <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; color: #1a1d1e; background: #fff; padding: 32px; border-radius: 8px;">
-        <h2 style="color: #c7a96b; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 16px;">
-          New Inquiry — Your Journey Coach
-        </h2>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
-          <tr>
-            <td style="padding: 10px 0; font-weight: bold; width: 140px; vertical-align: top; color: #555;">Name</td>
-            <td style="padding: 10px 0;">${escapeHtml(name)}</td>
-          </tr>
-          <tr style="background: #f9f9f9;">
-            <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Email</td>
-            <td style="padding: 10px 0;"><a href="mailto:${escapeHtml(email)}" style="color: #c7a96b;">${escapeHtml(email)}</a></td>
-          </tr>
-          <tr>
-            <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Phone</td>
-            <td style="padding: 10px 0;">${escapeHtml(phone)}</td>
-          </tr>
-          <tr style="background: #f9f9f9;">
-            <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Area of Interest</td>
-            <td style="padding: 10px 0;">${escapeHtml(interest)}</td>
-          </tr>
-          <tr>
-            <td style="padding: 10px 0; font-weight: bold; vertical-align: top; color: #555;">Message</td>
-            <td style="padding: 10px 0; white-space: pre-wrap;">${escapeHtml(message)}</td>
-          </tr>
-        </table>
-        <p style="color: #999; font-size: 0.85rem; margin-bottom: 0;">
-          Sent via yourjourneycoach.com contact form · ${new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })} ET
-        </p>
-      </div>
-    `;
-
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.forwardemail.net',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'hello@yourjourneycoach.com',
-        pass: smtpPassword,
-      },
-    });
-
-    await transporter.sendMail({
-      from: 'Your Journey Coach <hello@yourjourneycoach.com>',
-      to: toEmail,
-      replyTo: email,
-      subject: `New Inquiry from ${name}`,
-      html,
-    });
 
     return res.status(200).json({ ok: true });
   } catch (err) {
