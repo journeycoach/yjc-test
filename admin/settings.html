@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Site Settings — Admin</title>
+  <link rel="stylesheet" href="css/admin.css" />
+  <style>
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 800px) { .settings-grid { grid-template-columns: 1fr; } }
+    .color-row { display: flex; align-items: center; gap: 12px; }
+    .color-row input[type="color"] { width: 48px; height: 36px; padding: 2px; border: 1px solid #444; border-radius: 4px; background: none; cursor: pointer; }
+    .color-row input[type="text"] { flex: 1; font-family: monospace; }
+    .color-swatch { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #444; flex-shrink: 0; }
+    .guide-box { background: #1e2a1e; border-left: 3px solid #4caf7d; border-radius: 4px; padding: 14px 18px; margin-bottom: 24px; font-size: 0.875rem; color: #aacfaa; line-height: 1.6; }
+    .guide-box strong { color: #4caf7d; display: block; margin-bottom: 4px; }
+    .section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #888; margin: 28px 0 12px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+    .cta-preview { background: #1a1d1e; border: 1px solid #333; border-radius: 6px; padding: 20px; margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .preview-btn-primary { background: var(--preview-accent, #c7a96b); color: #1a1d1e; padding: 10px 24px; border-radius: 4px; font-weight: 600; font-size: 0.875rem; border: none; cursor: default; }
+    .preview-btn-secondary { background: transparent; color: var(--preview-accent, #c7a96b); padding: 10px 24px; border-radius: 4px; font-weight: 600; font-size: 0.875rem; border: 2px solid var(--preview-accent, #c7a96b); cursor: default; }
+    .font-preview { padding: 10px 0; font-size: 1.1rem; }
+    .save-bar { position: sticky; bottom: 0; background: #22262a; border-top: 1px solid #333; padding: 16px 24px; display: flex; align-items: center; gap: 16px; margin: 32px -24px -24px; }
+  </style>
+</head>
+<body>
+  <div class="admin-wrapper">
+    <header class="admin-header">
+      <div class="brand">Your Journey Coach <span>Admin</span></div>
+      <div class="admin-header-actions">
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-page-title">
+        <h1>Site Settings</h1>
+        <a href="dashboard.html" class="back-link">&#8592; Dashboard</a>
+      </div>
+
+      <div class="guide-box">
+        <strong>About Site Settings</strong>
+        Changes here update the brand colors, typography, and call-to-action buttons across the entire site.
+        The color and font choices apply globally via CSS variables — you don't need to update individual pages.
+        After saving, the live site reflects your changes within seconds.
+      </div>
+
+      <!-- ── Brand Colors ───────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-title">Brand Colors</div>
+        <div class="guide-box" style="margin-bottom:20px;">
+          <strong>Tip</strong>
+          Use the color picker or type a hex value directly. The accent gold is your primary brand color —
+          it appears on buttons, links, and highlights. Keep changes subtle to maintain the premium feel.
+        </div>
+
+        <div class="settings-grid">
+          <div class="form-group">
+            <label>Accent / Gold</label>
+            <div class="color-row">
+              <input type="color" id="pick_color_accent" />
+              <input type="text"  id="color_accent" class="form-control" placeholder="#c7a96b" maxlength="7" />
+              <div class="color-swatch" id="sw_color_accent"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Green / Secondary</label>
+            <div class="color-row">
+              <input type="color" id="pick_color_green" />
+              <input type="text"  id="color_green" class="form-control" placeholder="#4a6741" maxlength="7" />
+              <div class="color-swatch" id="sw_color_green"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Page Background</label>
+            <div class="color-row">
+              <input type="color" id="pick_color_bg" />
+              <input type="text"  id="color_bg" class="form-control" placeholder="#fdfbf7" maxlength="7" />
+              <div class="color-swatch" id="sw_color_bg"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Body Text</label>
+            <div class="color-row">
+              <input type="color" id="pick_color_text" />
+              <input type="text"  id="color_text" class="form-control" placeholder="#1c2321" maxlength="7" />
+              <div class="color-swatch" id="sw_color_text"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Typography ─────────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-title">Typography</div>
+        <div class="guide-box" style="margin-bottom:20px;">
+          <strong>Tip</strong>
+          These fonts must be available on Google Fonts. The heading font appears in titles and section headers.
+          The body font is used for all paragraph text and UI elements. Changing fonts updates the entire site.
+        </div>
+        <div class="settings-grid">
+          <div class="form-group">
+            <label>Heading Font</label>
+            <select id="font_heading" class="form-control">
+              <option value="Playfair Display">Playfair Display (current)</option>
+              <option value="Cormorant Garamond">Cormorant Garamond</option>
+              <option value="Libre Baskerville">Libre Baskerville</option>
+              <option value="Lora">Lora</option>
+              <option value="Merriweather">Merriweather</option>
+              <option value="EB Garamond">EB Garamond</option>
+            </select>
+            <div class="font-preview" id="heading_preview" style="font-family:'Playfair Display',serif;">
+              The quick brown fox — Executive Coaching
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Body Font</label>
+            <select id="font_body" class="form-control">
+              <option value="Inter">Inter (current)</option>
+              <option value="DM Sans">DM Sans</option>
+              <option value="Source Sans 3">Source Sans 3</option>
+              <option value="Nunito">Nunito</option>
+              <option value="Open Sans">Open Sans</option>
+              <option value="Lato">Lato</option>
+            </select>
+            <div class="font-preview" id="body_preview" style="font-family:'Inter',sans-serif;">
+              Helping leaders grow with clarity, purpose, and authentic confidence.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CTA Manager ────────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-title">Call-to-Action Manager</div>
+        <div class="guide-box" style="margin-bottom:20px;">
+          <strong>About CTAs</strong>
+          The primary CTA is your main button — it appears in the navigation bar and hero sections.
+          The secondary CTA is optional and appears alongside the primary in some sections.
+          Leave the secondary fields blank to hide it. URLs can be internal (e.g. /#contact) or external.
+        </div>
+
+        <div class="section-label">Primary CTA</div>
+        <div class="settings-grid">
+          <div class="form-group">
+            <label>Button Label</label>
+            <input type="text" id="cta_primary_text" class="form-control" placeholder="Let's Talk" />
+          </div>
+          <div class="form-group">
+            <label>Destination URL</label>
+            <input type="text" id="cta_primary_url" class="form-control" placeholder="/#contact" />
+          </div>
+        </div>
+
+        <div class="section-label">Secondary CTA <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></div>
+        <div class="settings-grid">
+          <div class="form-group">
+            <label>Button Label</label>
+            <input type="text" id="cta_secondary_text" class="form-control" placeholder="Learn More" />
+          </div>
+          <div class="form-group">
+            <label>Destination URL</label>
+            <input type="text" id="cta_secondary_url" class="form-control" placeholder="/enneagram.html" />
+          </div>
+        </div>
+
+        <div class="section-label">Preview</div>
+        <div class="cta-preview" id="cta_preview_box">
+          <button class="preview-btn-primary" id="cta_preview_primary">Let's Talk</button>
+          <button class="preview-btn-secondary" id="cta_preview_secondary" style="display:none;">Learn More</button>
+        </div>
+      </div>
+
+      <!-- ── Site Info ──────────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-title">Site Info</div>
+        <div class="form-group">
+          <label>Tagline <span style="color:#888;font-weight:400;">(shown in footer and meta)</span></label>
+          <input type="text" id="site_tagline" class="form-control" placeholder="Executive Coaching · Enneagram · Leadership" />
+        </div>
+      </div>
+
+      <div class="save-bar">
+        <button class="btn btn-primary" onclick="saveAll()">Save All Settings</button>
+        <span id="save_status" style="color:#888;font-size:0.875rem;"></span>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin.js"></script>
+  <script>
+    requireAdminAuth();
+
+    let settings = {};
+
+    // ── Color sync: picker ↔ text ↔ swatch ─────────────────────────────────
+    const colorKeys = ['color_accent', 'color_green', 'color_bg', 'color_text'];
+    colorKeys.forEach(key => {
+      const picker = document.getElementById('pick_' + key);
+      const text   = document.getElementById(key);
+      const swatch = document.getElementById('sw_' + key);
+
+      function sync(val) {
+        if (!val.startsWith('#')) return;
+        picker.value = val;
+        text.value   = val;
+        swatch.style.background = val;
+        if (key === 'color_accent') {
+          document.documentElement.style.setProperty('--preview-accent', val);
+        }
+      }
+
+      picker.addEventListener('input',  () => sync(picker.value));
+      text.addEventListener('input', () => {
+        const v = text.value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(v)) sync(v);
+      });
+    });
+
+    // ── Font preview ─────────────────────────────────────────────────────────
+    document.getElementById('font_heading').addEventListener('change', e => {
+      const f = e.target.value;
+      const el = document.getElementById('heading_preview');
+      el.style.fontFamily = `'${f}', serif`;
+      loadGoogleFont(f);
+    });
+    document.getElementById('font_body').addEventListener('change', e => {
+      const f = e.target.value;
+      const el = document.getElementById('body_preview');
+      el.style.fontFamily = `'${f}', sans-serif`;
+      loadGoogleFont(f);
+    });
+
+    function loadGoogleFont(name) {
+      const id = 'gf-' + name.replace(/\s/g, '-');
+      if (document.getElementById(id)) return;
+      const link = document.createElement('link');
+      link.id   = id;
+      link.rel  = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@400;600;700&display=swap`;
+      document.head.appendChild(link);
+    }
+
+    // ── CTA preview ─────────────────────────────────────────────────────────
+    ['cta_primary_text', 'cta_secondary_text', 'cta_secondary_url'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateCtaPreview);
+    });
+    function updateCtaPreview() {
+      const pText = document.getElementById('cta_primary_text').value || "Let's Talk";
+      const sText = document.getElementById('cta_secondary_text').value;
+      document.getElementById('cta_preview_primary').textContent  = pText;
+      document.getElementById('cta_preview_secondary').textContent = sText;
+      document.getElementById('cta_preview_secondary').style.display = sText ? 'inline-block' : 'none';
+    }
+
+    // ── Load settings ────────────────────────────────────────────────────────
+    async function loadSettings() {
+      const res  = await adminFetch('/api/admin/settings');
+      const data = await res.json();
+      settings = data.data || {};
+
+      colorKeys.forEach(key => {
+        const val = settings[key] || '';
+        const picker = document.getElementById('pick_' + key);
+        const text   = document.getElementById(key);
+        const swatch = document.getElementById('sw_' + key);
+        if (val) {
+          picker.value = val;
+          text.value   = val;
+          swatch.style.background = val;
+        }
+        if (key === 'color_accent' && val) {
+          document.documentElement.style.setProperty('--preview-accent', val);
+        }
+      });
+
+      const fh = settings.font_heading || 'Playfair Display';
+      const fb = settings.font_body    || 'Inter';
+      document.getElementById('font_heading').value = fh;
+      document.getElementById('font_body').value    = fb;
+      document.getElementById('heading_preview').style.fontFamily = `'${fh}', serif`;
+      document.getElementById('body_preview').style.fontFamily    = `'${fb}', sans-serif`;
+      loadGoogleFont(fh);
+      loadGoogleFont(fb);
+
+      document.getElementById('cta_primary_text').value   = settings.cta_primary_text   || '';
+      document.getElementById('cta_primary_url').value    = settings.cta_primary_url    || '';
+      document.getElementById('cta_secondary_text').value = settings.cta_secondary_text || '';
+      document.getElementById('cta_secondary_url').value  = settings.cta_secondary_url  || '';
+      document.getElementById('site_tagline').value       = settings.site_tagline       || '';
+
+      updateCtaPreview();
+    }
+
+    // ── Save ─────────────────────────────────────────────────────────────────
+    async function saveAll() {
+      const payload = {};
+      colorKeys.forEach(key => { payload[key] = document.getElementById(key).value.trim(); });
+      payload.font_heading       = document.getElementById('font_heading').value;
+      payload.font_body          = document.getElementById('font_body').value;
+      payload.cta_primary_text   = document.getElementById('cta_primary_text').value.trim();
+      payload.cta_primary_url    = document.getElementById('cta_primary_url').value.trim();
+      payload.cta_secondary_text = document.getElementById('cta_secondary_text').value.trim();
+      payload.cta_secondary_url  = document.getElementById('cta_secondary_url').value.trim();
+      payload.site_tagline       = document.getElementById('site_tagline').value.trim();
+
+      const status = document.getElementById('save_status');
+      status.textContent = 'Saving…';
+      const res = await adminFetch('/api/admin/settings', { method: 'PUT', body: JSON.stringify(payload) });
+      if (res.ok) {
+        showFlash('Settings saved.');
+        status.textContent = 'Saved ✓';
+        setTimeout(() => status.textContent = '', 3000);
+      } else {
+        showFlash('Error saving settings.', 'error');
+        status.textContent = '';
+      }
+    }
+
+    loadSettings();
+  </script>
+</body>
+</html>

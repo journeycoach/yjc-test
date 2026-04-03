@@ -158,6 +158,97 @@ async function setup() {
     console.error('✗ Failed to insert default navigation:', err.message);
   }
 
+  // ── site_settings ──────────────────────────────────────────────────────────
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        id SERIAL PRIMARY KEY,
+        setting_key VARCHAR(100) UNIQUE NOT NULL,
+        setting_value TEXT,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    console.log('✓ site_settings table ready');
+  } catch (err) {
+    console.error('✗ Failed to create site_settings table:', err.message);
+  }
+
+  const defaults = [
+    ['color_accent',       '#c7a96b'],
+    ['color_green',        '#4a6741'],
+    ['color_bg',           '#fdfbf7'],
+    ['color_text',         '#1c2321'],
+    ['font_heading',       'Playfair Display'],
+    ['font_body',          'Inter'],
+    ['cta_primary_text',   "Let's Talk"],
+    ['cta_primary_url',    '/#contact'],
+    ['cta_secondary_text', ''],
+    ['cta_secondary_url',  ''],
+    ['site_tagline',       'Executive Coaching · Enneagram · Leadership'],
+  ];
+  for (const [key, value] of defaults) {
+    try {
+      await sql`
+        INSERT INTO site_settings (setting_key, setting_value)
+        VALUES (${key}, ${value})
+        ON CONFLICT (setting_key) DO NOTHING
+      `;
+    } catch (err) {
+      console.error(`✗ Failed to seed setting ${key}:`, err.message);
+    }
+  }
+  console.log('✓ Default site settings seeded');
+
+  // ── page_sections ───────────────────────────────────────────────────────────
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS page_sections (
+        id SERIAL PRIMARY KEY,
+        page VARCHAR(100) NOT NULL,
+        section_key VARCHAR(100) NOT NULL,
+        label VARCHAR(255) NOT NULL,
+        is_visible BOOLEAN DEFAULT TRUE,
+        sort_order INTEGER DEFAULT 0,
+        status VARCHAR(20) DEFAULT 'published',
+        content JSONB DEFAULT '{}',
+        admin_notes TEXT,
+        UNIQUE(page, section_key)
+      )
+    `;
+    console.log('✓ page_sections table ready');
+  } catch (err) {
+    console.error('✗ Failed to create page_sections table:', err.message);
+  }
+
+  const sections = [
+    ['home', 'hero',         'Hero Banner',           0],
+    ['home', 'about',        'About / Welcome',       1],
+    ['home', 'methodology',  'Coaching Methodology',  2],
+    ['home', 'testimonials', 'Client Testimonials',   3],
+    ['home', 'contact',      'Contact Form',          4],
+    ['enneagram', 'hero',       'Hero Banner',        0],
+    ['enneagram', 'overview',   'What is Enneagram',  1],
+    ['enneagram', 'types',      'The 9 Types',        2],
+    ['enneagram', 'assessment', 'Take Assessment',    3],
+    ['enneagram', 'cta',        'Call to Action',     4],
+    ['blog', 'hero',  'Blog Header',       0],
+    ['blog', 'posts', 'Post Listing',      1],
+    ['tools', 'hero', 'Resources Header',  0],
+    ['tools', 'grid', 'Resources Grid',    1],
+  ];
+  for (const [page, key, label, order] of sections) {
+    try {
+      await sql`
+        INSERT INTO page_sections (page, section_key, label, sort_order)
+        VALUES (${page}, ${key}, ${label}, ${order})
+        ON CONFLICT (page, section_key) DO NOTHING
+      `;
+    } catch (err) {
+      console.error(`✗ Failed to seed section ${page}/${key}:`, err.message);
+    }
+  }
+  console.log('✓ Default page sections seeded');
+
   console.log('\nDatabase setup complete.');
 }
 
