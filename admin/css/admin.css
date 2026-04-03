@@ -130,6 +130,13 @@ a:hover {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  position: sticky;
+  top: 56px;
+  z-index: 90;
+  background: rgba(26, 29, 30, 0.96);
+  backdrop-filter: blur(6px);
+  padding: 14px 0 12px;
+  border-bottom: 1px solid #2a2e32;
 }
 
 .admin-page-title .back-link {
