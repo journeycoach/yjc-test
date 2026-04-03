@@ -20,10 +20,15 @@ export default async function handler(req, res) {
             allowedContentTypes: [
               'application/pdf',
               'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+              'text/plain',
+              'text/csv',
+              'application/rtf',
               'application/msword',
               'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
               'application/vnd.ms-excel',
               'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'application/vnd.ms-powerpoint',
+              'application/vnd.openxmlformats-officedocument.presentationml.presentation',
             ],
             maximumSizeInBytes: 50 * 1024 * 1024, // 50 MB
           };

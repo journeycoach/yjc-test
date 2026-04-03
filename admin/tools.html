@@ -9,7 +9,7 @@
 <body>
   <div class="admin-wrapper">
     <header class="admin-header">
-      <div class="brand">Your Journey Coach <span>Admin</span></div>
+      <a href="/index.html" class="brand">Your Journey Coach <span>Admin</span></a>
       <div class="admin-header-actions">
         <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
       </div>
@@ -73,26 +73,26 @@
               <label for="toolType">Type</label>
               <select id="toolType" onchange="onTypeChange()">
                 <option value="">— Select type —</option>
-                <option value="file">File Upload</option>
+                <option value="file">Document Upload</option>
                 <option value="link">Website Link</option>
               </select>
             </div>
 
             <!-- File upload zone (shown when type = file) -->
             <div class="form-group" id="fileUploadGroup" style="display:none;">
-              <label>File</label>
+              <label>Document</label>
               <div class="upload-zone" id="uploadZone">
                 <input type="file" id="fileInput"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.svg"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.rtf,.jpg,.jpeg,.png,.gif,.webp,.svg"
                   style="display:none;" />
                 <div class="upload-zone-icon" id="uploadIcon">📄</div>
-                <div class="upload-zone-label" id="uploadLabel">Click or drag a file here</div>
-                <div class="upload-zone-hint">PDF, Word, Excel, or image — up to 50 MB</div>
+                <div class="upload-zone-label" id="uploadLabel">Click or drag a document here</div>
+                <div class="upload-zone-hint">PDF, Word, Excel, PowerPoint, text, CSV, or image — up to 50 MB</div>
                 <div class="upload-progress-bar" id="progressBar" style="display:none;">
                   <div class="upload-progress-fill" id="progressFill"></div>
                 </div>
               </div>
-              <div class="form-hint">Or paste a URL directly in the field below.</div>
+              <div class="form-hint">Upload a document directly, or paste a document URL in the field below.</div>
             </div>
 
             <!-- File URL (shown when type = file, populated by upload or manual paste) -->
@@ -110,6 +110,27 @@
             <div class="form-group">
               <label for="imageUrl">Cover Image URL <span style="color:#666;font-weight:normal;">(optional)</span></label>
               <input type="url" id="imageUrl" placeholder="https://..." />
+            </div>
+
+            <div class="form-group">
+              <label>Cover Image Upload <span style="color:#666;font-weight:normal;">(optional)</span></label>
+              <div class="upload-zone" id="imageUploadZone">
+                <input type="file" id="imageInput"
+                  accept=".jpg,.jpeg,.png,.gif,.webp,.svg"
+                  style="display:none;" />
+                <div class="upload-zone-icon" id="imageUploadIcon">🖼️</div>
+                <div class="upload-zone-label" id="imageUploadLabel">Click or drag an image here</div>
+                <div class="upload-zone-hint">JPG, PNG, GIF, WebP, or SVG</div>
+                <div class="upload-progress-bar" id="imageProgressBar" style="display:none;">
+                  <div class="upload-progress-fill" id="imageProgressFill"></div>
+                </div>
+              </div>
+              <div class="form-hint">Uploading an image will fill the Cover Image URL field automatically.</div>
+            </div>
+
+            <div class="resource-image-preview" id="imagePreviewBox" hidden>
+              <div class="resource-image-preview-label">Cover Image Preview</div>
+              <img id="imagePreview" alt="Cover preview" />
             </div>
 
             <div class="form-group">
@@ -141,86 +162,153 @@
   <script type="module">
     import { upload } from 'https://esm.sh/@vercel/blob/client';
 
-    const zone    = document.getElementById('uploadZone');
-    const input   = document.getElementById('fileInput');
-    const icon    = document.getElementById('uploadIcon');
-    const label   = document.getElementById('uploadLabel');
-    const bar     = document.getElementById('progressBar');
-    const fill    = document.getElementById('progressFill');
-    const fileUrl = document.getElementById('fileUrl');
-
-    // Click zone → open file picker
-    zone.addEventListener('click', () => {
-      if (!zone.classList.contains('uploading')) input.click();
-    });
-
-    // Drag-and-drop
-    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
-    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-    zone.addEventListener('drop', e => {
-      e.preventDefault();
-      zone.classList.remove('drag-over');
-      const file = e.dataTransfer?.files?.[0];
-      if (file) handleFile(file);
-    });
-
-    // File picker change
-    input.addEventListener('change', () => {
-      if (input.files?.[0]) handleFile(input.files[0]);
-    });
-
-    async function handleFile(file) {
+    async function uploadBlob(file, options = {}) {
       const token = localStorage.getItem('admin_token');
-      if (!token) { showFlash('Not authenticated.', 'error'); return; }
+      if (!token) throw new Error('Not authenticated.');
 
-      // Show uploading state
-      zone.classList.add('uploading');
-      zone.classList.remove('has-file', 'drag-over');
-      icon.textContent  = '⏳';
-      label.textContent = `Uploading ${file.name}…`;
-      bar.style.display = 'block';
-      fill.style.width  = '0%';
-
-      try {
-        const blob = await upload(file.name, file, {
-          access: 'public',
-          handleUploadUrl: '/api/admin/tools?action=upload',
-          clientPayload: JSON.stringify(token),
-          onUploadProgress: ({ percentage }) => {
-            fill.style.width  = percentage + '%';
-            label.textContent = `Uploading ${file.name}… ${percentage}%`;
-          },
-        });
-
-        // Success — populate the file_url field
-        fileUrl.value     = blob.url;
-        zone.classList.remove('uploading');
-        zone.classList.add('has-file');
-        icon.textContent  = '✅';
-        label.textContent = file.name;
-        bar.style.display = 'none';
-        fill.style.width  = '0%';
-        showFlash('File uploaded.');
-      } catch (err) {
-        zone.classList.remove('uploading');
-        icon.textContent  = '❌';
-        label.textContent = 'Upload failed — ' + (err.message || 'unknown error');
-        bar.style.display = 'none';
-        showFlash('Upload failed: ' + (err.message || 'unknown error'), 'error');
-      }
-
-      // Reset the input so re-selecting the same file triggers change
-      input.value = '';
+      return upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/admin/tools?action=upload',
+        clientPayload: JSON.stringify(token),
+        ...options,
+      });
     }
 
-    // Expose a reset function so the main script can call it when clearing the form
+    function setupUploadZone({
+      zoneId,
+      inputId,
+      iconId,
+      labelId,
+      barId,
+      fillId,
+      targetFieldId,
+      emptyIcon,
+      emptyLabel,
+      successMessage
+    }) {
+      const zone = document.getElementById(zoneId);
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      const label = document.getElementById(labelId);
+      const bar = document.getElementById(barId);
+      const fill = document.getElementById(fillId);
+      const targetField = document.getElementById(targetFieldId);
+
+      async function handleFile(file) {
+        zone.classList.add('uploading');
+        zone.classList.remove('has-file', 'drag-over');
+        icon.textContent = '⏳';
+        label.textContent = `Uploading ${file.name}…`;
+        bar.style.display = 'block';
+        fill.style.width = '0%';
+
+        try {
+          const blob = await uploadBlob(file, {
+            onUploadProgress: ({ percentage }) => {
+              fill.style.width = percentage + '%';
+              label.textContent = `Uploading ${file.name}… ${percentage}%`;
+            }
+          });
+
+          targetField.value = blob.url;
+          targetField.dispatchEvent(new Event('input', { bubbles: true }));
+          targetField.dispatchEvent(new Event('change', { bubbles: true }));
+          zone.classList.remove('uploading');
+          zone.classList.add('has-file');
+          icon.textContent = '✅';
+          label.textContent = file.name;
+          bar.style.display = 'none';
+          fill.style.width = '0%';
+          showFlash(successMessage);
+        } catch (err) {
+          zone.classList.remove('uploading');
+          icon.textContent = '❌';
+          label.textContent = 'Upload failed — ' + (err.message || 'unknown error');
+          bar.style.display = 'none';
+          showFlash('Upload failed: ' + (err.message || 'unknown error'), 'error');
+        }
+
+        input.value = '';
+      }
+
+      zone.addEventListener('click', () => {
+        if (!zone.classList.contains('uploading')) input.click();
+      });
+
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        const file = e.dataTransfer?.files?.[0];
+        if (file) handleFile(file);
+      });
+
+      input.addEventListener('change', () => {
+        if (input.files?.[0]) handleFile(input.files[0]);
+      });
+
+      return function resetZone(customLabel) {
+        zone.classList.remove('uploading', 'has-file', 'drag-over');
+        icon.textContent = emptyIcon;
+        label.textContent = customLabel || emptyLabel;
+        bar.style.display = 'none';
+        fill.style.width = '0%';
+        input.value = '';
+      };
+    }
+
+    const resetFileZone = setupUploadZone({
+      zoneId: 'uploadZone',
+      inputId: 'fileInput',
+      iconId: 'uploadIcon',
+      labelId: 'uploadLabel',
+      barId: 'progressBar',
+      fillId: 'progressFill',
+      targetFieldId: 'fileUrl',
+      emptyIcon: '📄',
+      emptyLabel: 'Click or drag a document here',
+      successMessage: 'Document uploaded.'
+    });
+
+    const resetImageZone = setupUploadZone({
+      zoneId: 'imageUploadZone',
+      inputId: 'imageInput',
+      iconId: 'imageUploadIcon',
+      labelId: 'imageUploadLabel',
+      barId: 'imageProgressBar',
+      fillId: 'imageProgressFill',
+      targetFieldId: 'imageUrl',
+      emptyIcon: '🖼️',
+      emptyLabel: 'Click or drag an image here',
+      successMessage: 'Image uploaded.'
+    });
+
     window._resetUploadZone = function () {
-      zone.classList.remove('uploading', 'has-file', 'drag-over');
-      icon.textContent  = '📄';
-      label.textContent = 'Click or drag a file here';
-      bar.style.display = 'none';
-      fill.style.width  = '0%';
-      input.value = '';
+      resetFileZone();
+      resetImageZone();
+    };
+
+    window._setUploadZoneState = function (kind, hasValue) {
+      if (kind === 'file') {
+        if (hasValue) {
+          resetFileZone('File on record — upload a new file to replace');
+          document.getElementById('uploadZone')?.classList.add('has-file');
+          document.getElementById('uploadIcon').textContent = '✅';
+        } else {
+          resetFileZone();
+        }
+      }
+
+      if (kind === 'image') {
+        if (hasValue) {
+          resetImageZone('Image on record — upload a new image to replace');
+          document.getElementById('imageUploadZone')?.classList.add('has-file');
+          document.getElementById('imageUploadIcon').textContent = '✅';
+        } else {
+          resetImageZone();
+        }
+      }
     };
   </script>
 
@@ -229,6 +317,19 @@
 
     let allTools  = [];
     let editingId = null;
+
+    function updateImagePreview() {
+      const url = document.getElementById('imageUrl').value.trim();
+      const previewBox = document.getElementById('imagePreviewBox');
+      const previewImage = document.getElementById('imagePreview');
+      if (!url) {
+        previewImage.removeAttribute('src');
+        previewBox.hidden = true;
+        return;
+      }
+      previewImage.src = url;
+      previewBox.hidden = false;
+    }
 
     function escHtml(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -281,15 +382,11 @@
       document.getElementById('isHidden').checked  = t.is_hidden || false;
       document.getElementById('sortOrder').value   = t.sort_order || 0;
       onTypeChange();
-      // If there's an existing file URL, reflect that in the upload zone
-      if (t.type === 'file' && t.file_url) {
-        const icon  = document.getElementById('uploadIcon');
-        const lbl   = document.getElementById('uploadLabel');
-        const zone  = document.getElementById('uploadZone');
-        if (icon) icon.textContent  = '✅';
-        if (lbl)  lbl.textContent   = 'File on record — upload a new file to replace';
-        if (zone) { zone.classList.add('has-file'); zone.classList.remove('uploading'); }
+      if (window._setUploadZoneState) {
+        window._setUploadZoneState('file', t.type === 'file' && !!t.file_url);
+        window._setUploadZoneState('image', !!t.image_url);
       }
+      updateImagePreview();
       document.getElementById('formTitle').textContent    = 'Edit Tool';
       document.getElementById('saveBtn').textContent      = 'Update Tool';
       document.getElementById('cancelBtn').style.display = 'inline-flex';
@@ -304,6 +401,7 @@
       document.getElementById('cancelBtn').style.display = 'none';
       onTypeChange();
       if (window._resetUploadZone) window._resetUploadZone();
+      updateImagePreview();
     }
 
     async function deleteTool(id) {
@@ -349,6 +447,10 @@
       }
     });
 
+    document.getElementById('imageUrl').addEventListener('input', updateImagePreview);
+    document.getElementById('imageUrl').addEventListener('change', updateImagePreview);
+
+    updateImagePreview();
     loadTools();
   </script>
 </body>

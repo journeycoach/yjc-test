@@ -83,11 +83,20 @@ a:hover {
 }
 
 .admin-header .brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
   font-family: var(--admin-heading-font);
   font-size: 1.1rem;
   color: var(--admin-accent);
   font-weight: normal;
   letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.admin-header .brand:hover {
+  color: var(--admin-accent);
+  text-decoration: none;
 }
 
 .admin-header .brand span {
@@ -865,6 +874,34 @@ textarea {
   border-radius: 2px;
   transition: width 0.15s;
   width: 0%;
+}
+
+.resource-image-preview {
+  margin-top: 4px;
+  padding: 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--admin-card-bg) 85%, black);
+}
+
+.resource-image-preview-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+  margin-bottom: 10px;
+}
+
+.resource-image-preview img {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--admin-border) 70%, white);
+  background: rgba(255, 255, 255, 0.02);
+  object-fit: cover;
 }
 
 /* --- Responsive --- */

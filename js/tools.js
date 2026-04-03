@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         `;
                     } else {
                         const badgeClass = isFile ? 'pdf' : 'link';
-                        const badgeText = isFile ? 'PDF Download' : 'External Link';
+                        const badgeText = isFile ? 'Download Resource' : 'External Link';
                         const imageMarkup = tool.image_url ? `<img class="tool-card-image" src="${tool.image_url}" alt="${tool.title}" loading="lazy">` : '';
                         const badgeMarkup = isFile
                             ? `<span class="tool-type-badge ${badgeClass}">${badgeText}</span>`
