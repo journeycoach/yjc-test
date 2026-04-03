@@ -22,6 +22,7 @@
       </div>
 
       <div class="split-panel">
+        <!-- ── LEFT: Table ─────────────────────────────────────── -->
         <div class="card">
           <div class="card-title">All Tools</div>
           <table>
@@ -40,14 +41,17 @@
           </table>
         </div>
 
+        <!-- ── RIGHT: Add / Edit Form ──────────────────────────── -->
         <div class="card">
           <div class="card-title" id="formTitle">Add Tool</div>
           <form id="toolForm">
             <input type="hidden" id="toolId" />
+
             <div class="form-group">
               <label for="toolTitle">Title</label>
               <input type="text" id="toolTitle" placeholder="Resource title" required />
             </div>
+
             <div class="form-group">
               <label for="category">Category</label>
               <select id="category">
@@ -59,43 +63,71 @@
                 <option value="Tools">Tools</option>
               </select>
             </div>
+
             <div class="form-group">
               <label for="description">Description</label>
               <textarea id="description" rows="2" placeholder="Brief description..."></textarea>
             </div>
+
             <div class="form-group">
               <label for="toolType">Type</label>
-              <select id="toolType" onchange="toggleUrlFields()">
+              <select id="toolType" onchange="onTypeChange()">
                 <option value="">— Select type —</option>
                 <option value="file">File Upload</option>
                 <option value="link">Website Link</option>
               </select>
             </div>
+
+            <!-- File upload zone (shown when type = file) -->
+            <div class="form-group" id="fileUploadGroup" style="display:none;">
+              <label>File</label>
+              <div class="upload-zone" id="uploadZone">
+                <input type="file" id="fileInput"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.svg"
+                  style="display:none;" />
+                <div class="upload-zone-icon" id="uploadIcon">📄</div>
+                <div class="upload-zone-label" id="uploadLabel">Click or drag a file here</div>
+                <div class="upload-zone-hint">PDF, Word, Excel, or image — up to 50 MB</div>
+                <div class="upload-progress-bar" id="progressBar" style="display:none;">
+                  <div class="upload-progress-fill" id="progressFill"></div>
+                </div>
+              </div>
+              <div class="form-hint">Or paste a URL directly in the field below.</div>
+            </div>
+
+            <!-- File URL (shown when type = file, populated by upload or manual paste) -->
             <div class="form-group" id="fileUrlGroup" style="display:none;">
               <label for="fileUrl">File URL</label>
               <input type="url" id="fileUrl" placeholder="https://..." />
             </div>
+
+            <!-- External URL (shown when type = link) -->
             <div class="form-group" id="externalUrlGroup" style="display:none;">
               <label for="externalUrl">External URL</label>
               <input type="url" id="externalUrl" placeholder="https://..." />
             </div>
+
             <div class="form-group">
               <label for="imageUrl">Cover Image URL <span style="color:#666;font-weight:normal;">(optional)</span></label>
               <input type="url" id="imageUrl" placeholder="https://..." />
             </div>
+
             <div class="form-group">
               <label for="sortOrder">Sort Order</label>
               <input type="number" id="sortOrder" value="0" min="0" />
             </div>
+
             <div class="form-group">
               <div class="form-check">
                 <input type="checkbox" id="isHidden" />
                 <label for="isHidden">Hidden (not shown on site)</label>
               </div>
             </div>
+
             <div class="form-actions">
               <button type="submit" class="btn btn-primary" id="saveBtn">Save Tool</button>
-              <button type="button" class="btn btn-ghost btn-sm" id="cancelBtn" style="display:none;" onclick="resetForm()">Cancel</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="cancelBtn"
+                style="display:none;" onclick="resetForm()">Cancel</button>
             </div>
           </form>
         </div>
@@ -104,20 +136,109 @@
   </div>
 
   <script src="js/admin.js"></script>
+
+  <!-- Vercel Blob client upload (loaded on demand) -->
+  <script type="module">
+    import { upload } from 'https://esm.sh/@vercel/blob/client';
+
+    const zone    = document.getElementById('uploadZone');
+    const input   = document.getElementById('fileInput');
+    const icon    = document.getElementById('uploadIcon');
+    const label   = document.getElementById('uploadLabel');
+    const bar     = document.getElementById('progressBar');
+    const fill    = document.getElementById('progressFill');
+    const fileUrl = document.getElementById('fileUrl');
+
+    // Click zone → open file picker
+    zone.addEventListener('click', () => {
+      if (!zone.classList.contains('uploading')) input.click();
+    });
+
+    // Drag-and-drop
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const file = e.dataTransfer?.files?.[0];
+      if (file) handleFile(file);
+    });
+
+    // File picker change
+    input.addEventListener('change', () => {
+      if (input.files?.[0]) handleFile(input.files[0]);
+    });
+
+    async function handleFile(file) {
+      const token = localStorage.getItem('admin_token');
+      if (!token) { showFlash('Not authenticated.', 'error'); return; }
+
+      // Show uploading state
+      zone.classList.add('uploading');
+      zone.classList.remove('has-file', 'drag-over');
+      icon.textContent  = '⏳';
+      label.textContent = `Uploading ${file.name}…`;
+      bar.style.display = 'block';
+      fill.style.width  = '0%';
+
+      try {
+        const blob = await upload(file.name, file, {
+          access: 'public',
+          handleUploadUrl: '/api/admin/tools?action=upload',
+          clientPayload: JSON.stringify(token),
+          onUploadProgress: ({ percentage }) => {
+            fill.style.width  = percentage + '%';
+            label.textContent = `Uploading ${file.name}… ${percentage}%`;
+          },
+        });
+
+        // Success — populate the file_url field
+        fileUrl.value     = blob.url;
+        zone.classList.remove('uploading');
+        zone.classList.add('has-file');
+        icon.textContent  = '✅';
+        label.textContent = file.name;
+        bar.style.display = 'none';
+        fill.style.width  = '0%';
+        showFlash('File uploaded.');
+      } catch (err) {
+        zone.classList.remove('uploading');
+        icon.textContent  = '❌';
+        label.textContent = 'Upload failed — ' + (err.message || 'unknown error');
+        bar.style.display = 'none';
+        showFlash('Upload failed: ' + (err.message || 'unknown error'), 'error');
+      }
+
+      // Reset the input so re-selecting the same file triggers change
+      input.value = '';
+    }
+
+    // Expose a reset function so the main script can call it when clearing the form
+    window._resetUploadZone = function () {
+      zone.classList.remove('uploading', 'has-file', 'drag-over');
+      icon.textContent  = '📄';
+      label.textContent = 'Click or drag a file here';
+      bar.style.display = 'none';
+      fill.style.width  = '0%';
+      input.value = '';
+    };
+  </script>
+
   <script>
     requireAdminAuth();
 
-    let allTools = [];
+    let allTools  = [];
     let editingId = null;
-
-    function toggleUrlFields() {
-      const type = document.getElementById('toolType').value;
-      document.getElementById('fileUrlGroup').style.display     = type === 'file' ? 'block' : 'none';
-      document.getElementById('externalUrlGroup').style.display = type === 'link' ? 'block' : 'none';
-    }
 
     function escHtml(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function onTypeChange() {
+      const type = document.getElementById('toolType').value;
+      document.getElementById('fileUploadGroup').style.display  = type === 'file' ? 'block' : 'none';
+      document.getElementById('fileUrlGroup').style.display     = type === 'file' ? 'block' : 'none';
+      document.getElementById('externalUrlGroup').style.display = type === 'link' ? 'block' : 'none';
     }
 
     async function loadTools() {
@@ -134,7 +255,9 @@
           <td>${escHtml(t.title)}</td>
           <td class="td-muted">${escHtml(t.category || '—')}</td>
           <td class="td-muted">${t.type === 'file' ? 'File' : t.type === 'link' ? 'Link' : '—'}</td>
-          <td>${t.is_hidden ? '<span class="badge badge-danger">Hidden</span>' : '<span class="badge badge-muted">Visible</span>'}</td>
+          <td>${t.is_hidden
+            ? '<span class="badge badge-danger">Hidden</span>'
+            : '<span class="badge badge-muted">Visible</span>'}</td>
           <td class="td-actions">
             <button class="btn btn-secondary btn-sm" onclick="editTool(${t.id})">Edit</button>
             <button class="btn btn-danger btn-sm" onclick="deleteTool(${t.id})">Delete</button>
@@ -147,20 +270,29 @@
       const t = allTools.find(r => r.id === id);
       if (!t) return;
       editingId = id;
-      document.getElementById('toolId').value       = id;
-      document.getElementById('toolTitle').value    = t.title || '';
-      document.getElementById('category').value     = t.category || 'General';
-      document.getElementById('description').value  = t.description || '';
-      document.getElementById('toolType').value     = t.type || '';
-      document.getElementById('fileUrl').value      = t.file_url || '';
-      document.getElementById('externalUrl').value  = t.external_url || '';
-      document.getElementById('imageUrl').value     = t.image_url || '';
-      document.getElementById('isHidden').checked   = t.is_hidden || false;
-      document.getElementById('sortOrder').value    = t.sort_order || 0;
-      toggleUrlFields();
-      document.getElementById('formTitle').textContent      = 'Edit Tool';
-      document.getElementById('saveBtn').textContent        = 'Update Tool';
-      document.getElementById('cancelBtn').style.display   = 'inline-flex';
+      document.getElementById('toolId').value      = id;
+      document.getElementById('toolTitle').value   = t.title || '';
+      document.getElementById('category').value    = t.category || 'General';
+      document.getElementById('description').value = t.description || '';
+      document.getElementById('toolType').value    = t.type || '';
+      document.getElementById('fileUrl').value     = t.file_url || '';
+      document.getElementById('externalUrl').value = t.external_url || '';
+      document.getElementById('imageUrl').value    = t.image_url || '';
+      document.getElementById('isHidden').checked  = t.is_hidden || false;
+      document.getElementById('sortOrder').value   = t.sort_order || 0;
+      onTypeChange();
+      // If there's an existing file URL, reflect that in the upload zone
+      if (t.type === 'file' && t.file_url) {
+        const icon  = document.getElementById('uploadIcon');
+        const lbl   = document.getElementById('uploadLabel');
+        const zone  = document.getElementById('uploadZone');
+        if (icon) icon.textContent  = '✅';
+        if (lbl)  lbl.textContent   = 'File on record — upload a new file to replace';
+        if (zone) { zone.classList.add('has-file'); zone.classList.remove('uploading'); }
+      }
+      document.getElementById('formTitle').textContent    = 'Edit Tool';
+      document.getElementById('saveBtn').textContent      = 'Update Tool';
+      document.getElementById('cancelBtn').style.display = 'inline-flex';
     }
 
     function resetForm() {
@@ -170,7 +302,8 @@
       document.getElementById('formTitle').textContent    = 'Add Tool';
       document.getElementById('saveBtn').textContent      = 'Save Tool';
       document.getElementById('cancelBtn').style.display = 'none';
-      toggleUrlFields();
+      onTypeChange();
+      if (window._resetUploadZone) window._resetUploadZone();
     }
 
     async function deleteTool(id) {
@@ -198,7 +331,7 @@
         external_url: document.getElementById('externalUrl').value.trim() || null,
         image_url:    document.getElementById('imageUrl').value.trim() || null,
         is_hidden:    document.getElementById('isHidden').checked,
-        sort_order:   parseInt(document.getElementById('sortOrder').value) || 0
+        sort_order:   parseInt(document.getElementById('sortOrder').value) || 0,
       };
       if (editingId) payload.id = editingId;
 

@@ -1,8 +1,44 @@
 import { sql } from '../_db.js';
-import { requireAuth } from '../_auth.js';
+import { requireAuth, verifyToken } from '../_auth.js';
+import { handleUpload } from '@vercel/blob/client';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // Blob client upload endpoint — must come before requireAuth because
+  // Vercel's upload-complete webhook won't carry the Authorization header.
+  // Auth is enforced inside onBeforeGenerateToken via clientPayload.
+  if (req.query.action === 'upload') {
+    try {
+      const jsonResponse = await handleUpload({
+        body: req.body,
+        request: req,
+        onBeforeGenerateToken: async (_pathname, clientPayload) => {
+          const token = JSON.parse(clientPayload || 'null');
+          if (!verifyToken(token)) throw new Error('Unauthorized');
+          return {
+            allowedContentTypes: [
+              'application/pdf',
+              'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+              'application/msword',
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'application/vnd.ms-excel',
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ],
+            maximumSizeInBytes: 50 * 1024 * 1024, // 50 MB
+          };
+        },
+        onUploadCompleted: async ({ blob }) => {
+          console.log('Resource uploaded to Vercel Blob:', blob.url);
+        },
+      });
+      return res.status(200).json(jsonResponse);
+    } catch (err) {
+      console.error('Blob upload error:', err);
+      return res.status(err.message === 'Unauthorized' ? 401 : 400).json({ error: err.message });
+    }
+  }
+
   if (!requireAuth(req, res)) return;
 
   if (req.method === 'GET') {
