@@ -97,9 +97,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         // ── Sender ────────────────────────────────────────────────────────────
-        // Using Resend sandbox sender until yourjourneycoach.com domain is verified.
-        // To switch: verify domain in Resend dashboard, then change to noreply@yourjourneycoach.com
-        from: 'Your Journey Coach <onboarding@resend.dev>',
+        from: 'Your Journey Coach <noreply@yourjourneycoach.com>',
         // ─────────────────────────────────────────────────────────────────────
         to: [toEmail],
         reply_to: email,
