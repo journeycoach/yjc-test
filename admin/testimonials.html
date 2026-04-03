@@ -21,34 +21,32 @@
         <a href="dashboard.html" class="back-link">&#8592; Dashboard</a>
       </div>
 
-      <!-- Testimonials Table -->
-      <div class="card">
-        <div class="card-title">All Testimonials</div>
-        <table id="testimonialsTable">
-          <thead>
-            <tr>
-              <th>Quote</th>
-              <th>Author</th>
-              <th>Order</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="testimonialsBody">
-            <tr><td colspan="4" class="table-empty">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <div class="split-panel">
+        <div class="card">
+          <div class="card-title">All Testimonials</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Quote</th>
+                <th>Author</th>
+                <th>Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="testimonialsBody">
+              <tr><td colspan="4" class="table-empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-      <!-- Add / Edit Form -->
-      <div class="card">
-        <div class="card-title" id="formTitle">Add Testimonial</div>
-        <form id="testimonialForm">
-          <input type="hidden" id="testimonialId" />
-          <div class="form-group">
-            <label for="quote">Quote</label>
-            <textarea id="quote" rows="3" placeholder="Enter testimonial quote..." required></textarea>
-          </div>
-          <div class="form-row">
+        <div class="card">
+          <div class="card-title" id="formTitle">Add Testimonial</div>
+          <form id="testimonialForm">
+            <input type="hidden" id="testimonialId" />
+            <div class="form-group">
+              <label for="quote">Quote</label>
+              <textarea id="quote" rows="4" placeholder="Enter testimonial quote..." required></textarea>
+            </div>
             <div class="form-group">
               <label for="author">Author</label>
               <input type="text" id="author" placeholder="Author name" required />
@@ -57,12 +55,12 @@
               <label for="sortOrder">Sort Order</label>
               <input type="number" id="sortOrder" value="0" min="0" />
             </div>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" id="saveBtn">Save Testimonial</button>
-            <button type="button" class="btn btn-secondary" id="cancelBtn" style="display:none;" onclick="resetForm()">Cancel</button>
-          </div>
-        </form>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="saveBtn">Save Testimonial</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="cancelBtn" style="display:none;" onclick="resetForm()">Cancel</button>
+            </div>
+          </form>
+        </div>
       </div>
     </main>
   </div>
@@ -71,34 +69,15 @@
   <script>
     requireAdminAuth();
 
+    let allTestimonials = [];
     let editingId = null;
 
-    async function loadTestimonials() {
-      const res = await adminFetch('/api/admin/testimonials');
-      const data = await res.json();
-      const tbody = document.getElementById('testimonialsBody');
-      if (!data.data || data.data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="table-empty">No testimonials yet.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = data.data.map(t => `
-        <tr>
-          <td>${escHtml(t.quote.substring(0, 80))}${t.quote.length > 80 ? '...' : ''}</td>
-          <td>${escHtml(t.author)}</td>
-          <td>${t.sort_order}</td>
-          <td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="editTestimonial(${t.id})">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteTestimonial(${t.id})">Delete</button>
-          </td>
-        </tr>
-      `).join('');
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // Store all records for editing
-    let allTestimonials = [];
-
-    async function loadTestimonialsWithStore() {
-      const res = await adminFetch('/api/admin/testimonials');
+    async function loadTestimonials() {
+      const res  = await adminFetch('/api/admin/testimonials');
       const data = await res.json();
       allTestimonials = data.data || [];
       const tbody = document.getElementById('testimonialsBody');
@@ -108,9 +87,9 @@
       }
       tbody.innerHTML = allTestimonials.map(t => `
         <tr>
-          <td>${escHtml(t.quote.substring(0, 80))}${t.quote.length > 80 ? '...' : ''}</td>
+          <td>${escHtml(t.quote.substring(0, 70))}${t.quote.length > 70 ? '…' : ''}</td>
           <td>${escHtml(t.author)}</td>
-          <td>${t.sort_order}</td>
+          <td class="td-muted">${t.sort_order}</td>
           <td class="td-actions">
             <button class="btn btn-secondary btn-sm" onclick="editTestimonial(${t.id})">Edit</button>
             <button class="btn btn-danger btn-sm" onclick="deleteTestimonial(${t.id})">Delete</button>
@@ -123,22 +102,21 @@
       const t = allTestimonials.find(r => r.id === id);
       if (!t) return;
       editingId = id;
-      document.getElementById('testimonialId').value = id;
-      document.getElementById('quote').value = t.quote;
-      document.getElementById('author').value = t.author;
-      document.getElementById('sortOrder').value = t.sort_order || 0;
-      document.getElementById('formTitle').textContent = 'Edit Testimonial';
-      document.getElementById('saveBtn').textContent = 'Update Testimonial';
-      document.getElementById('cancelBtn').style.display = 'inline-flex';
-      document.getElementById('quote').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('testimonialId').value  = id;
+      document.getElementById('quote').value          = t.quote;
+      document.getElementById('author').value         = t.author;
+      document.getElementById('sortOrder').value      = t.sort_order || 0;
+      document.getElementById('formTitle').textContent      = 'Edit Testimonial';
+      document.getElementById('saveBtn').textContent        = 'Update Testimonial';
+      document.getElementById('cancelBtn').style.display   = 'inline-flex';
     }
 
     function resetForm() {
       editingId = null;
       document.getElementById('testimonialId').value = '';
       document.getElementById('testimonialForm').reset();
-      document.getElementById('formTitle').textContent = 'Add Testimonial';
-      document.getElementById('saveBtn').textContent = 'Save Testimonial';
+      document.getElementById('formTitle').textContent    = 'Add Testimonial';
+      document.getElementById('saveBtn').textContent      = 'Save Testimonial';
       document.getElementById('cancelBtn').style.display = 'none';
     }
 
@@ -150,7 +128,7 @@
       });
       if (res.ok) {
         showFlash('Testimonial deleted.');
-        loadTestimonialsWithStore();
+        loadTestimonials();
       } else {
         showFlash('Error deleting testimonial.', 'error');
       }
@@ -159,8 +137,8 @@
     document.getElementById('testimonialForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const payload = {
-        quote: document.getElementById('quote').value.trim(),
-        author: document.getElementById('author').value.trim(),
+        quote:      document.getElementById('quote').value.trim(),
+        author:     document.getElementById('author').value.trim(),
         sort_order: parseInt(document.getElementById('sortOrder').value) || 0
       };
       if (editingId) payload.id = editingId;
@@ -169,22 +147,17 @@
         method: editingId ? 'PUT' : 'POST',
         body: JSON.stringify(payload)
       });
-
       if (res.ok) {
         showFlash(editingId ? 'Testimonial updated.' : 'Testimonial added.');
         resetForm();
-        loadTestimonialsWithStore();
+        loadTestimonials();
       } else {
         const err = await res.json();
         showFlash(err.error || 'Error saving testimonial.', 'error');
       }
     });
 
-    function escHtml(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    loadTestimonialsWithStore();
+    loadTestimonials();
   </script>
 </body>
 </html>

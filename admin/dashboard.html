@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — Admin</title>
   <link rel="stylesheet" href="css/admin.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 </head>
 <body>
   <div class="admin-wrapper">
@@ -18,63 +19,81 @@
     <main class="admin-main">
       <div class="admin-page-title">
         <h1>Dashboard</h1>
+        <button class="btn btn-ghost btn-sm" onclick="resetOrder()" title="Restore default card order">Reset Order</button>
       </div>
 
-      <!-- Site management -->
-      <div style="font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:12px;">Site Management</div>
-      <div class="dashboard-grid" style="margin-bottom:32px;">
-        <a href="settings.html" class="dashboard-card" style="border-color:#c7a96b33;">
-          <div class="card-icon">&#x2699;&#xFE0F;</div>
-          <div class="card-title">Site Settings</div>
-          <div class="card-desc">Control brand colors, fonts, global CTAs, and site tagline. Changes apply across the entire site instantly.</div>
-        </a>
-        <a href="sections.html" class="dashboard-card" style="border-color:#c7a96b33;">
-          <div class="card-icon">&#x1F4F0;</div>
-          <div class="card-title">Page Sections</div>
-          <div class="card-desc">Show, hide, reorder, and draft page sections. Add admin notes to any section as a reminder.</div>
-        </a>
-      </div>
-
-      <!-- Content -->
-      <div style="font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:12px;">Content</div>
-      <div class="dashboard-grid">
-        <a href="posts.html" class="dashboard-card">
-          <div class="card-icon">&#x1F4DD;</div>
-          <div class="card-title">Blog Posts</div>
-          <div class="card-desc">Write, edit, and manage blog articles with HTML content editing and live preview.</div>
-        </a>
-        <a href="testimonials.html" class="dashboard-card">
-          <div class="card-icon">&#x1F4AC;</div>
-          <div class="card-title">Testimonials</div>
-          <div class="card-desc">Add and manage client testimonials displayed on the homepage.</div>
-        </a>
-        <a href="tools.html" class="dashboard-card">
-          <div class="card-icon">&#x1F6E0;&#xFE0F;</div>
-          <div class="card-title">Tools &amp; Resources</div>
-          <div class="card-desc">Manage downloadable files and resource links shown on the Resources page.</div>
-        </a>
-        <a href="navigation.html" class="dashboard-card">
-          <div class="card-icon">&#x1F517;</div>
-          <div class="card-title">Navigation</div>
-          <div class="card-desc">Edit the site brand name, nav links, and the CTA button in the header.</div>
-        </a>
-        <a href="bookmarks.html" class="dashboard-card">
-          <div class="card-icon">&#x1F516;</div>
-          <div class="card-title">Bookmarks</div>
-          <div class="card-desc">Organize curated links into categories for the bookmarks section.</div>
-        </a>
-        <a href="contacts.html" class="dashboard-card">
-          <div class="card-icon">&#x1F4E9;</div>
-          <div class="card-title">Contact Submissions</div>
-          <div class="card-desc">View and manage inquiries submitted through the contact form.</div>
-        </a>
-      </div>
+      <div class="dashboard-grid" id="dashGrid"></div>
     </main>
   </div>
 
   <script src="js/admin.js"></script>
   <script>
     requireAdminAuth();
+
+    const STORAGE_KEY = 'admin_dashboard_order';
+
+    const CARDS = [
+      { key: 'settings',     href: 'settings.html',     icon: '⚙️',  title: 'Site Settings',         desc: 'Control brand colors, fonts, global CTAs, and site tagline. Changes apply across the entire site instantly.' },
+      { key: 'sections',     href: 'sections.html',     icon: '📰',  title: 'Page Sections',          desc: 'Show, hide, reorder, and draft page sections. Add admin notes to any section as a reminder.' },
+      { key: 'posts',        href: 'posts.html',        icon: '📝',  title: 'Blog Posts',             desc: 'Write, edit, and manage blog articles with HTML content editing and live preview.' },
+      { key: 'testimonials', href: 'testimonials.html', icon: '💬',  title: 'Testimonials',           desc: 'Add and manage client testimonials displayed on the homepage.' },
+      { key: 'tools',        href: 'tools.html',        icon: '🛠️',  title: 'Tools & Resources',      desc: 'Manage downloadable files and resource links shown on the Resources page.' },
+      { key: 'navigation',   href: 'navigation.html',   icon: '🔗',  title: 'Navigation',             desc: 'Edit the site brand name, nav links, and the CTA button in the header.' },
+      { key: 'bookmarks',    href: 'bookmarks.html',    icon: '🔖',  title: 'Bookmarks',              desc: 'Organize curated links into categories for the bookmarks section.' },
+      { key: 'contacts',     href: 'contacts.html',     icon: '📩',  title: 'Contact Submissions',    desc: 'View and manage inquiries submitted through the contact form.' },
+    ];
+
+    function getSavedOrder() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const keys = JSON.parse(raw);
+        if (!Array.isArray(keys)) return null;
+        return keys;
+      } catch { return null; }
+    }
+
+    function saveOrder(keys) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
+    }
+
+    function getOrderedCards() {
+      const saved = getSavedOrder();
+      if (!saved) return CARDS;
+      const cardMap = Object.fromEntries(CARDS.map(c => [c.key, c]));
+      const ordered = saved.map(k => cardMap[k]).filter(Boolean);
+      // Append any new cards not yet in saved order
+      CARDS.forEach(c => { if (!saved.includes(c.key)) ordered.push(c); });
+      return ordered;
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('dashGrid');
+      grid.innerHTML = getOrderedCards().map(c => `
+        <a href="${c.href}" class="dashboard-card" data-key="${c.key}">
+          <div class="card-icon">${c.icon}</div>
+          <div class="card-title">${c.title}</div>
+          <div class="card-desc">${c.desc}</div>
+        </a>
+      `).join('');
+
+      Sortable.create(grid, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        onEnd() {
+          const keys = Array.from(grid.querySelectorAll('.dashboard-card')).map(el => el.dataset.key);
+          saveOrder(keys);
+        }
+      });
+    }
+
+    function resetOrder() {
+      localStorage.removeItem(STORAGE_KEY);
+      renderGrid();
+    }
+
+    renderGrid();
   </script>
 </body>
 </html>

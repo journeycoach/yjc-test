@@ -502,17 +502,40 @@ textarea {
   padding: 24px;
   text-decoration: none;
   color: #f0ece4;
-  transition: border-color 0.15s, background-color 0.15s;
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  position: relative;
+  cursor: grab;
+  user-select: none;
 }
+
+.dashboard-card:active { cursor: grabbing; }
 
 .dashboard-card:hover {
   border-color: #c7a96b;
   background-color: #252a2e;
   text-decoration: none;
 }
+
+/* Drag state classes */
+.dashboard-card.sortable-ghost  { opacity: 0.25; }
+.dashboard-card.sortable-chosen { box-shadow: 0 0 0 2px #c7a96b, 0 8px 24px rgba(0,0,0,0.4); z-index: 10; }
+
+/* Drag handle pill shown on hover */
+.dashboard-card::after {
+  content: '⠿⠿';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.65rem;
+  color: #444;
+  letter-spacing: 1px;
+  pointer-events: none;
+  transition: color 0.15s;
+}
+.dashboard-card:hover::after { color: #888; }
 
 .dashboard-card .card-icon {
   font-size: 1.8rem;
@@ -532,6 +555,29 @@ textarea {
   font-size: 0.8rem;
   color: #888;
   line-height: 1.5;
+}
+
+/* --- Split Panel (table + form side by side) --- */
+.split-panel {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 0 20px;
+  align-items: start;
+  margin-bottom: 8px;
+}
+
+.split-panel > .card {
+  margin-bottom: 24px;
+  height: 100%;
+}
+
+/* Stack vertically on narrow screens */
+@media (max-width: 760px) {
+  .split-panel { grid-template-columns: 1fr; }
+  .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
 }
 
 /* --- Section separator --- */

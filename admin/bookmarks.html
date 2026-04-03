@@ -21,28 +21,28 @@
         <a href="dashboard.html" class="back-link">&#8592; Dashboard</a>
       </div>
 
-      <!-- ===== CATEGORIES SECTION ===== -->
-      <div class="card">
-        <div class="card-title">Categories</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Sort Order</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="categoriesBody">
-            <tr><td colspan="3" class="table-empty">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- ===== CATEGORIES ===== -->
+      <div class="split-panel">
+        <div class="card">
+          <div class="card-title">Categories</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="categoriesBody">
+              <tr><td colspan="3" class="table-empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-      <div class="card">
-        <div class="card-title" id="catFormTitle">Add Category</div>
-        <form id="categoryForm">
-          <input type="hidden" id="catId" />
-          <div class="form-row">
+        <div class="card">
+          <div class="card-title" id="catFormTitle">Add Category</div>
+          <form id="categoryForm">
+            <input type="hidden" id="catId" />
             <div class="form-group">
               <label for="catTitle">Title</label>
               <input type="text" id="catTitle" placeholder="Category name" required />
@@ -51,39 +51,38 @@
               <label for="catSortOrder">Sort Order</label>
               <input type="number" id="catSortOrder" value="0" min="0" />
             </div>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" id="catSaveBtn">Add Category</button>
-            <button type="button" class="btn btn-secondary" id="catCancelBtn" style="display:none;" onclick="resetCatForm()">Cancel</button>
-          </div>
-        </form>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="catSaveBtn">Add Category</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="catCancelBtn" style="display:none;" onclick="resetCatForm()">Cancel</button>
+            </div>
+          </form>
+        </div>
       </div>
 
       <hr class="section-sep" />
 
-      <!-- ===== BOOKMARKS SECTION ===== -->
-      <div class="card">
-        <div class="card-title">All Bookmarks</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>URL</th>
-              <th>Category</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="bookmarksBody">
-            <tr><td colspan="4" class="table-empty">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- ===== BOOKMARKS ===== -->
+      <div class="split-panel">
+        <div class="card">
+          <div class="card-title">All Bookmarks</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookmarksBody">
+              <tr><td colspan="3" class="table-empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-      <div class="card">
-        <div class="card-title" id="bmFormTitle">Add Bookmark</div>
-        <form id="bookmarkForm">
-          <input type="hidden" id="bmId" />
-          <div class="form-row">
+        <div class="card">
+          <div class="card-title" id="bmFormTitle">Add Bookmark</div>
+          <form id="bookmarkForm">
+            <input type="hidden" id="bmId" />
             <div class="form-group">
               <label for="bmTitle">Title</label>
               <input type="text" id="bmTitle" placeholder="Bookmark title" required />
@@ -92,8 +91,6 @@
               <label for="bmUrl">URL</label>
               <input type="url" id="bmUrl" placeholder="https://..." required />
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-group">
               <label for="bmCategory">Category</label>
               <select id="bmCategory">
@@ -104,16 +101,16 @@
               <label for="bmSortOrder">Sort Order</label>
               <input type="number" id="bmSortOrder" value="0" min="0" />
             </div>
-          </div>
-          <div class="form-group">
-            <label for="bmDescription">Description</label>
-            <textarea id="bmDescription" rows="2" placeholder="Optional description..."></textarea>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" id="bmSaveBtn">Add Bookmark</button>
-            <button type="button" class="btn btn-secondary" id="bmCancelBtn" style="display:none;" onclick="resetBmForm()">Cancel</button>
-          </div>
-        </form>
+            <div class="form-group">
+              <label for="bmDescription">Description</label>
+              <textarea id="bmDescription" rows="2" placeholder="Optional description..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="bmSaveBtn">Add Bookmark</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="bmCancelBtn" style="display:none;" onclick="resetBmForm()">Cancel</button>
+            </div>
+          </form>
+        </div>
       </div>
     </main>
   </div>
@@ -137,20 +134,19 @@
       const tbody = document.getElementById('categoriesBody');
       if (allCategories.length === 0) {
         tbody.innerHTML = '<tr><td colspan="3" class="table-empty">No categories yet.</td></tr>';
-        return;
+      } else {
+        tbody.innerHTML = allCategories.map(c => `
+          <tr>
+            <td>${escHtml(c.title)}</td>
+            <td class="td-muted">${c.sort_order}</td>
+            <td class="td-actions">
+              <button class="btn btn-secondary btn-sm" onclick="editCategory(${c.id})">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id})">Delete</button>
+            </td>
+          </tr>
+        `).join('');
       }
-      tbody.innerHTML = allCategories.map(c => `
-        <tr>
-          <td>${escHtml(c.title)}</td>
-          <td class="td-muted">${c.sort_order}</td>
-          <td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="editCategory(${c.id})">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id})">Delete</button>
-          </td>
-        </tr>
-      `).join('');
 
-      // Rebuild category select in bookmark form
       const sel = document.getElementById('bmCategory');
       const currentVal = sel.value;
       sel.innerHTML = '<option value="">— No category —</option>';
@@ -229,14 +225,16 @@
     function renderBookmarks() {
       const tbody = document.getElementById('bookmarksBody');
       if (allBookmarks.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="table-empty">No bookmarks yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="table-empty">No bookmarks yet.</td></tr>';
         return;
       }
       tbody.innerHTML = allBookmarks.map(b => `
         <tr>
-          <td>${escHtml(b.title)}</td>
-          <td class="td-muted" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-            <a href="${escHtml(b.url)}" target="_blank" rel="noopener">${escHtml(b.url)}</a>
+          <td>
+            <div>${escHtml(b.title)}</div>
+            <div class="td-muted" style="font-size:0.75rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              <a href="${escHtml(b.url)}" target="_blank" rel="noopener">${escHtml(b.url)}</a>
+            </div>
           </td>
           <td class="td-muted">${escHtml(b.category_title || '—')}</td>
           <td class="td-actions">
@@ -260,7 +258,6 @@
       document.getElementById('bmFormTitle').textContent = 'Edit Bookmark';
       document.getElementById('bmSaveBtn').textContent = 'Update Bookmark';
       document.getElementById('bmCancelBtn').style.display = 'inline-flex';
-      document.getElementById('bmTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function resetBmForm() {
@@ -320,9 +317,9 @@
         adminFetch('/api/admin/bookmarks')
       ]);
       const catData = await catRes.json();
-      const bmData = await bmRes.json();
+      const bmData  = await bmRes.json();
       allCategories = catData.data || [];
-      allBookmarks = bmData.data || [];
+      allBookmarks  = bmData.data  || [];
       renderCategories();
       renderBookmarks();
     }
