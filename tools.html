@@ -71,12 +71,22 @@
             border-color: var(--color-accent-gold-dim);
         }
 
+        .tool-card.image-only {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
         .tool-card-image {
             width: 100%;
             aspect-ratio: 2 / 3;
             object-fit: cover;
             display: block;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tool-card.image-only .tool-card-image {
+            border-bottom: none;
         }
 
         .tool-card-body {

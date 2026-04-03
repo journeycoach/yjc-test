@@ -45,27 +45,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 tools.forEach(tool => {
                     const isFile = tool.type === 'file';
                     const linkUrl = isFile ? tool.file_url : tool.external_url;
+                    const isBooksCategory = (categoryName || '').toLowerCase() === 'books';
+                    const renderImageOnly = isBooksCategory && !!tool.image_url;
 
                     // Do not render empty cards if URL is broken
                     if (!linkUrl) return;
 
-                    const badgeClass = isFile ? 'pdf' : 'link';
-                    const badgeText = isFile ? 'PDF Download' : 'External Link';
-
                     const card = document.createElement('a');
-                    card.className = 'tool-card';
+                    card.className = `tool-card${renderImageOnly ? ' image-only' : ''}`;
                     card.href = linkUrl;
                     card.target = "_blank";
                     card.rel = "noopener noreferrer";
+                    card.setAttribute('aria-label', tool.title);
+                    card.title = tool.title;
 
-                    card.innerHTML = `
-                        ${tool.image_url ? `<img class="tool-card-image" src="${tool.image_url}" alt="${tool.title}" loading="lazy">` : ''}
-                        <div class="tool-card-body">
-                            <span class="tool-type-badge ${badgeClass}">${badgeText}</span>
-                            <h3>${tool.title}</h3>
-                            ${tool.description ? `<p>${tool.description}</p>` : ''}
-                        </div>
-                    `;
+                    if (renderImageOnly) {
+                        card.innerHTML = `
+                            <img class="tool-card-image" src="${tool.image_url}" alt="${tool.title}" loading="lazy">
+                        `;
+                    } else {
+                        const badgeClass = isFile ? 'pdf' : 'link';
+                        const badgeText = isFile ? 'PDF Download' : 'External Link';
+
+                        card.innerHTML = `
+                            ${tool.image_url ? `<img class="tool-card-image" src="${tool.image_url}" alt="${tool.title}" loading="lazy">` : ''}
+                            <div class="tool-card-body">
+                                <span class="tool-type-badge ${badgeClass}">${badgeText}</span>
+                                <h3>${tool.title}</h3>
+                                ${tool.description ? `<p>${tool.description}</p>` : ''}
+                            </div>
+                        `;
+                    }
 
                     grid.appendChild(card);
                 });
