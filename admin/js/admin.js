@@ -2,6 +2,7 @@
 
 const API_BASE = '/api/admin';
 const ADMIN_THEME_CACHE_KEY = 'admin_theme_settings';
+const ADMIN_RECENT_ITEMS_KEY = 'admin_recent_items';
 const ADMIN_THEME_SETTING_KEYS = [
   'admin_color_accent',
   'admin_color_bg',
@@ -18,6 +19,19 @@ const ADMIN_THEME_SETTING_KEYS = [
   'admin_font_body',
   'admin_dashboard_columns'
 ];
+
+const ADMIN_PAGE_LABELS = {
+  'dashboard.html': 'Dashboard',
+  'settings.html': 'Site Settings',
+  'sections.html': 'Page Sections',
+  'posts.html': 'Blog Posts',
+  'post-edit.html': 'Post Editor',
+  'testimonials.html': 'Testimonials',
+  'tools.html': 'Tools & Resources',
+  'navigation.html': 'Navigation',
+  'bookmarks.html': 'Bookmarks',
+  'contacts.html': 'Contact Submissions'
+};
 
 // Check auth on page load (call this on every protected page)
 function requireAdminAuth() {
@@ -79,6 +93,36 @@ function getCachedAdminTheme() {
   } catch {
     return {};
   }
+}
+
+function getRecentAdminItems() {
+  try {
+    const items = JSON.parse(localStorage.getItem(ADMIN_RECENT_ITEMS_KEY) || '[]');
+    return Array.isArray(items) ? items : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentAdminItems(items) {
+  localStorage.setItem(ADMIN_RECENT_ITEMS_KEY, JSON.stringify(items));
+}
+
+function trackRecentAdminPage() {
+  const pathname = window.location.pathname.split('/').pop() || 'dashboard.html';
+  if (pathname === 'index.html' || pathname === 'dashboard.html') return;
+
+  const label = ADMIN_PAGE_LABELS[pathname];
+  if (!label) return;
+
+  const recent = getRecentAdminItems().filter(item => item.path !== pathname);
+  recent.unshift({
+    path: pathname,
+    label,
+    timestamp: Date.now()
+  });
+
+  saveRecentAdminItems(recent.slice(0, 6));
 }
 
 function applyAdminTheme(settings = {}) {
@@ -202,4 +246,5 @@ function formatDate(iso) {
 applyAdminTheme(getCachedAdminTheme());
 if (localStorage.getItem('admin_token')) {
   loadAdminTheme();
+  trackRecentAdminPage();
 }

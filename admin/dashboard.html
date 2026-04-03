@@ -36,6 +36,16 @@
           </div>
         </div>
       </section>
+
+      <section class="dashboard-recent">
+        <div class="dashboard-summary-header">
+          <h2>Recently Used</h2>
+          <p>Jump back into the admin sections you opened most recently.</p>
+        </div>
+        <div class="recent-list" id="recentList">
+          <div class="recent-empty">No recent sections yet. Open a few admin pages and they’ll show up here.</div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -159,6 +169,36 @@
       `).join('');
     }
 
+    function formatRelativeTime(timestamp) {
+      const diffMs = Date.now() - timestamp;
+      const minutes = Math.max(1, Math.floor(diffMs / 60000));
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      return `${days}d ago`;
+    }
+
+    function renderRecentItems() {
+      const recentList = document.getElementById('recentList');
+      const recentItems = getRecentAdminItems();
+
+      if (!recentItems.length) {
+        recentList.innerHTML = '<div class="recent-empty">No recent sections yet. Open a few admin pages and they’ll show up here.</div>';
+        return;
+      }
+
+      recentList.innerHTML = recentItems.map(item => `
+        <a href="${item.path}" class="recent-item">
+          <div class="recent-item-main">
+            <span class="recent-item-title">${item.label}</span>
+            <span class="recent-item-meta">${formatRelativeTime(item.timestamp)}</span>
+          </div>
+          <span class="recent-item-arrow">↗</span>
+        </a>
+      `).join('');
+    }
+
     async function loadSummary() {
       const summaryGrid = document.getElementById('summaryGrid');
 
@@ -226,6 +266,7 @@
 
     renderGrid();
     loadSummary();
+    renderRecentItems();
   </script>
 </body>
 </html>
