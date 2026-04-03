@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Filter out hidden resources and the "Tools" category before grouping
-            const visibleResources = resources.filter(res => !res.isHidden && res.category !== 'Tools');
+            // Filter out hidden resources
+            const visibleResources = resources.filter(res => !res.is_hidden);
 
             if (visibleResources.length === 0) {
                 toolsContainer.innerHTML = '<p style="text-align: center; margin-top: 4rem;">No resources available yet. Check back soon!</p>';
@@ -43,8 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const grid = section.querySelector('.tools-grid');
 
                 tools.forEach(tool => {
-                    const isFile = tool.type === 'File Upload';
-                    const linkUrl = isFile ? tool.fileUrl : tool.external_url;
+                    const isFile = tool.type === 'file';
+                    const linkUrl = isFile ? tool.file_url : tool.external_url;
 
                     // Do not render empty cards if URL is broken
                     if (!linkUrl) return;
