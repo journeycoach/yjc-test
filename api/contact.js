@@ -109,7 +109,8 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorBody = await response.text();
       console.error('Resend API error:', response.status, errorBody);
-      return res.status(502).json({ error: 'Failed to send email. Please try again with different inputs.' });
+      // TEMP: return Resend error details for diagnosis — remove before launch
+      return res.status(502).json({ error: `Resend ${response.status}: ${errorBody}` });
     }
 
     return res.status(200).json({ ok: true });
