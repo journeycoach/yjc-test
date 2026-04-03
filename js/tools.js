@@ -34,6 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const section = document.createElement('div');
                 section.className = 'category-section fade-in-up';
+                if ((categoryName || '').toLowerCase() === 'books') {
+                    section.classList.add('books-section');
+                }
 
                 section.innerHTML = `
                     <h2 class="category-title">${categoryName}</h2>

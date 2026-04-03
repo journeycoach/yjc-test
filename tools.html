@@ -53,6 +53,11 @@
             gap: 1.25rem;
         }
 
+        .category-section.books-section .tools-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
         .tool-card {
             background: var(--color-bg-secondary);
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -75,6 +80,11 @@
             background: transparent;
             border: none;
             box-shadow: none;
+        }
+
+        .category-section.books-section .tool-card.image-only {
+            max-width: 240px;
+            justify-self: center;
         }
 
         .tool-card-image {
