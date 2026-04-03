@@ -118,6 +118,32 @@ async function setup() {
     console.error('✗ Failed to create bookmarks table:', err.message);
   }
 
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS contact_submissions (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(50),
+        interest VARCHAR(255),
+        message TEXT,
+        is_read BOOLEAN DEFAULT FALSE,
+        submitted_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    console.log('✓ contact_submissions table ready');
+  } catch (err) {
+    console.error('✗ Failed to create contact_submissions table:', err.message);
+  }
+
+  // Add contact_submissions if it doesn't exist yet on existing installs
+  try {
+    await sql`ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS is_read BOOLEAN DEFAULT FALSE`;
+    console.log('✓ contact_submissions.is_read column ensured');
+  } catch (err) {
+    // Table may not exist yet — safe to ignore
+  }
+
   // Insert default navigation row if empty
   try {
     await sql`

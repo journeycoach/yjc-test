@@ -1,3 +1,5 @@
+import { sql } from './_db.js';
+
 export default async function handler(req, res) {
   try {
     // Only allow POST
@@ -45,6 +47,17 @@ export default async function handler(req, res) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: 'Please provide a valid email address.' });
+    }
+
+    // Save to database first — so no submission is ever lost even if email fails
+    try {
+      await sql`
+        INSERT INTO contact_submissions (name, email, phone, interest, message)
+        VALUES (${name}, ${email}, ${phone}, ${interest}, ${message})
+      `;
+    } catch (dbErr) {
+      console.error('Failed to save submission to DB:', dbErr);
+      // Continue — still attempt email even if DB write fails
     }
 
     const apiKey = process.env.RESEND_API_KEY;
