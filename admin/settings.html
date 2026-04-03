@@ -9,17 +9,17 @@
     .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
     @media (max-width: 800px) { .settings-grid { grid-template-columns: 1fr; } }
     .color-row { display: flex; align-items: center; gap: 12px; }
-    .color-row input[type="color"] { width: 48px; height: 36px; padding: 2px; border: 1px solid #444; border-radius: 4px; background: none; cursor: pointer; }
+    .color-row input[type="color"] { width: 48px; height: 36px; padding: 2px; border: 1px solid var(--admin-border); border-radius: 4px; background: none; cursor: pointer; }
     .color-row input[type="text"] { flex: 1; font-family: monospace; }
-    .color-swatch { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #444; flex-shrink: 0; }
+    .color-swatch { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--admin-border); flex-shrink: 0; }
     .guide-box { background: #1e2a1e; border-left: 3px solid #4caf7d; border-radius: 4px; padding: 14px 18px; margin-bottom: 24px; font-size: 0.875rem; color: #aacfaa; line-height: 1.6; }
     .guide-box strong { color: #4caf7d; display: block; margin-bottom: 4px; }
-    .section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #888; margin: 28px 0 12px; border-bottom: 1px solid #333; padding-bottom: 6px; }
-    .cta-preview { background: #1a1d1e; border: 1px solid #333; border-radius: 6px; padding: 20px; margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--admin-muted); margin: 28px 0 12px; border-bottom: 1px solid var(--admin-border); padding-bottom: 6px; }
+    .cta-preview { background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 6px; padding: 20px; margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
     .preview-btn-primary { background: var(--preview-accent, #c7a96b); color: #1a1d1e; padding: 10px 24px; border-radius: 4px; font-weight: 600; font-size: 0.875rem; border: none; cursor: default; }
     .preview-btn-secondary { background: transparent; color: var(--preview-accent, #c7a96b); padding: 10px 24px; border-radius: 4px; font-weight: 600; font-size: 0.875rem; border: 2px solid var(--preview-accent, #c7a96b); cursor: default; }
     .font-preview { padding: 10px 0; font-size: 1.1rem; }
-    .save-bar { position: sticky; bottom: 0; background: #22262a; border-top: 1px solid #333; padding: 16px 24px; display: flex; align-items: center; gap: 16px; margin: 32px -24px -24px; }
+    .save-bar { position: sticky; bottom: 0; background: var(--admin-card-bg); border-top: 1px solid var(--admin-border); padding: 16px 24px; display: flex; align-items: center; gap: 16px; margin: 32px -24px -24px; }
   </style>
 </head>
 <body>
@@ -179,6 +179,108 @@
         </div>
       </div>
 
+      <div class="card">
+        <div class="card-title">Admin Panel Appearance</div>
+        <div class="guide-box" style="margin-bottom:20px;">
+          <strong>About Admin Appearance</strong>
+          These settings change the look of the admin only. You can customize the admin accent color, background,
+          fonts, and dashboard card layout without affecting the public website. Leave any field blank to use the default admin style.
+        </div>
+
+        <div class="section-label">Admin Colors</div>
+        <div class="settings-grid">
+          <div class="form-group">
+            <label>Accent</label>
+            <div class="color-row">
+              <input type="color" id="pick_admin_color_accent" />
+              <input type="text" id="admin_color_accent" class="form-control" placeholder="#c7a96b" maxlength="7" />
+              <div class="color-swatch" id="sw_admin_color_accent"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Background</label>
+            <div class="color-row">
+              <input type="color" id="pick_admin_color_bg" />
+              <input type="text" id="admin_color_bg" class="form-control" placeholder="#1a1d1e" maxlength="7" />
+              <div class="color-swatch" id="sw_admin_color_bg"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Card Background</label>
+            <div class="color-row">
+              <input type="color" id="pick_admin_color_card" />
+              <input type="text" id="admin_color_card" class="form-control" placeholder="#22262a" maxlength="7" />
+              <div class="color-swatch" id="sw_admin_color_card"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Text</label>
+            <div class="color-row">
+              <input type="color" id="pick_admin_color_text" />
+              <input type="text" id="admin_color_text" class="form-control" placeholder="#f0ece4" maxlength="7" />
+              <div class="color-swatch" id="sw_admin_color_text"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Muted Text</label>
+            <div class="color-row">
+              <input type="color" id="pick_admin_color_muted" />
+              <input type="text" id="admin_color_muted" class="form-control" placeholder="#888888" maxlength="7" />
+              <div class="color-swatch" id="sw_admin_color_muted"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Border</label>
+            <div class="color-row">
+              <input type="color" id="pick_admin_color_border" />
+              <input type="text" id="admin_color_border" class="form-control" placeholder="#333333" maxlength="7" />
+              <div class="color-swatch" id="sw_admin_color_border"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-label">Admin Typography</div>
+        <div class="settings-grid">
+          <div class="form-group">
+            <label>Heading Font</label>
+            <select id="admin_font_heading" class="form-control">
+              <option value="">Default Serif</option>
+              <option value="Playfair Display">Playfair Display</option>
+              <option value="Cormorant Garamond">Cormorant Garamond</option>
+              <option value="Libre Baskerville">Libre Baskerville</option>
+              <option value="Lora">Lora</option>
+              <option value="Merriweather">Merriweather</option>
+              <option value="EB Garamond">EB Garamond</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Body Font</label>
+            <select id="admin_font_body" class="form-control">
+              <option value="">System UI</option>
+              <option value="Inter">Inter</option>
+              <option value="DM Sans">DM Sans</option>
+              <option value="Source Sans 3">Source Sans 3</option>
+              <option value="Nunito">Nunito</option>
+              <option value="Open Sans">Open Sans</option>
+              <option value="Lato">Lato</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-label">Dashboard Layout</div>
+        <div class="settings-grid">
+          <div class="form-group">
+            <label>Cards Per Row</label>
+            <select id="admin_dashboard_columns" class="form-control">
+              <option value="2">2 columns</option>
+              <option value="3">3 columns</option>
+              <option value="4">4 columns</option>
+            </select>
+            <div class="form-hint">Mobile widths still collapse automatically for readability.</div>
+          </div>
+        </div>
+      </div>
+
       <div class="save-bar">
         <button class="btn btn-primary" onclick="saveAll()">Save All Settings</button>
         <span id="save_status" style="color:#888;font-size:0.875rem;"></span>
@@ -193,7 +295,16 @@
     let settings = {};
 
     // ── Color sync: picker ↔ text ↔ swatch ─────────────────────────────────
-    const colorKeys = ['color_accent', 'color_green', 'color_bg', 'color_text'];
+    const siteColorKeys = ['color_accent', 'color_green', 'color_bg', 'color_text'];
+    const adminColorKeys = [
+      'admin_color_accent',
+      'admin_color_bg',
+      'admin_color_card',
+      'admin_color_text',
+      'admin_color_muted',
+      'admin_color_border'
+    ];
+    const colorKeys = [...siteColorKeys, ...adminColorKeys];
     colorKeys.forEach(key => {
       const picker = document.getElementById('pick_' + key);
       const text   = document.getElementById(key);
@@ -282,6 +393,10 @@
       loadGoogleFont(fh);
       loadGoogleFont(fb);
 
+      document.getElementById('admin_font_heading').value      = settings.admin_font_heading || '';
+      document.getElementById('admin_font_body').value         = settings.admin_font_body || '';
+      document.getElementById('admin_dashboard_columns').value = settings.admin_dashboard_columns || '3';
+
       document.getElementById('cta_primary_text').value   = settings.cta_primary_text   || '';
       document.getElementById('cta_primary_url').value    = settings.cta_primary_url    || '';
       document.getElementById('cta_secondary_text').value = settings.cta_secondary_text || '';
@@ -289,6 +404,7 @@
       document.getElementById('site_tagline').value       = settings.site_tagline       || '';
 
       updateCtaPreview();
+      applyAdminTheme(settings);
     }
 
     // ── Save ─────────────────────────────────────────────────────────────────
@@ -302,11 +418,17 @@
       payload.cta_secondary_text = document.getElementById('cta_secondary_text').value.trim();
       payload.cta_secondary_url  = document.getElementById('cta_secondary_url').value.trim();
       payload.site_tagline       = document.getElementById('site_tagline').value.trim();
+      payload.admin_font_heading = document.getElementById('admin_font_heading').value;
+      payload.admin_font_body = document.getElementById('admin_font_body').value;
+      payload.admin_dashboard_columns = document.getElementById('admin_dashboard_columns').value;
+      adminColorKeys.forEach(key => { payload[key] = document.getElementById(key).value.trim(); });
 
       const status = document.getElementById('save_status');
       status.textContent = 'Saving…';
       const res = await adminFetch('/api/admin/settings', { method: 'PUT', body: JSON.stringify(payload) });
       if (res.ok) {
+        applyAdminTheme(payload);
+        cacheAdminTheme(payload);
         showFlash('Settings saved.');
         status.textContent = 'Saved ✓';
         setTimeout(() => status.textContent = '', 3000);
