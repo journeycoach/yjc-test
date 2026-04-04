@@ -1,7 +1,7 @@
-// nav.js — Dynamically renders the navbar from Sanity CMS with a local fallback.
+// nav.js — Dynamically renders the navbar from the content API with a local fallback.
 
 (function () {
-    // Centralized fallback config (used if Sanity is unreachable or returns nothing)
+    // Centralized fallback config (used if the content API is unreachable or returns nothing)
     const FALLBACK_CONFIG = {
         brand_name: 'Your Journey Coach',
         nav_links: [
@@ -70,14 +70,23 @@
         navList.innerHTML = html;
     }
 
+    async function fetchNavigation() {
+        const res = await fetch('/api/content/navigation');
+        if (!res.ok) {
+            throw new Error(`Navigation request failed: ${res.status}`);
+        }
+        const payload = await res.json();
+        return payload.data || null;
+    }
+
     function init() {
-        // Race Sanity fetch against a 2-second timeout so the nav always renders quickly.
-        // If Sanity is unreachable or slow, the fallback config is used immediately.
+        // Race the API fetch against a 2-second timeout so the nav always renders quickly.
+        // If the API is unreachable or slow, the fallback config is used immediately.
         const timeout = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('nav timeout')), 2000)
         );
 
-        Promise.race([sanityClient.fetch('*[_type == "navigation"][0]'), timeout])
+        Promise.race([fetchNavigation(), timeout])
             .then(config => {
                 renderNav(config || FALLBACK_CONFIG);
             })

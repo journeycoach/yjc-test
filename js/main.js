@@ -67,14 +67,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Dynamic Testimonials Rotation
     const testimonialsContainer = document.getElementById('testimonials-container');
     if (testimonialsContainer) {
-        // Query all testimonial documents from Sanity
-        sanityClient.fetch('*[_type == "testimonial"]')
-            .then(testimonials => {
-                if (testimonials && testimonials.length > 0) {
+        fetch('/api/content/testimonials')
+            .then(res => {
+                if (!res.ok) throw new Error(`Testimonials request failed: ${res.status}`);
+                return res.json();
+            })
+            .then(payload => {
+                const testimonials = payload.data || [];
+                if (testimonials.length > 0) {
                     renderRotatingTestimonials(testimonials, testimonialsContainer);
                 }
             })
-            .catch(error => console.error('Error loading testimonials from Sanity:', error));
+            .catch(error => console.error('Error loading testimonials:', error));
     }
 
     function renderRotatingTestimonials(testimonials, container) {

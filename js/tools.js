@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const linkUrl = isFile ? tool.fileUrl : tool.externalUrl;
                 const isBooksCategory = (categoryName || '').toLowerCase() === 'books';
                 const renderImageOnly = isBooksCategory && !!tool.imageUrl;
-                const renderTextAboveImage = !renderImageOnly && tool.type === 'link' && !!tool.imageUrl;
+                const renderTextAboveImage = !renderImageOnly && !!tool.imageUrl;
 
                 if (!linkUrl) return;
 
