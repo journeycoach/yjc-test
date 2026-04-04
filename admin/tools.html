@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tools &amp; Resources — Admin</title>
   <link rel="stylesheet" href="css/admin.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <style>
+    .cat-filter-bar { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+    .cat-filter { padding: 5px 14px; border-radius: 4px; border: 1px solid var(--admin-border); background: var(--admin-card-bg);
+                  color: var(--admin-muted); cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s; }
+    .cat-filter.active { background: var(--admin-accent); color: var(--admin-bg); border-color: var(--admin-accent); }
+    .cat-filter:hover:not(.active) { border-color: var(--admin-accent); color: var(--admin-accent); }
+    .cat-group-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+                       color: var(--admin-accent); margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--admin-border); }
+    .cat-group-label:first-child { margin-top: 0; }
+    .tool-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--admin-card-bg);
+                border: 1px solid var(--admin-border); border-radius: 4px; margin-bottom: 4px; font-size: 0.85rem;
+                transition: box-shadow 0.15s; }
+    .tool-row:hover { background: #252a2e; }
+    .tool-row .drag-handle { color: #555; cursor: grab; font-size: 1rem; user-select: none; flex-shrink: 0; }
+    .tool-row .drag-handle:active { cursor: grabbing; }
+    .tool-row.sortable-ghost { opacity: 0.3; }
+    .tool-row.sortable-chosen { box-shadow: 0 0 0 2px var(--admin-accent), 0 4px 12px rgba(0,0,0,0.3); z-index: 10; }
+    .tool-row-title { flex: 1; color: var(--admin-text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tool-row-meta { font-size: 0.75rem; color: var(--admin-muted); flex-shrink: 0; }
+    .save-order-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .order-changed-badge { font-size: 0.8rem; color: var(--admin-accent); display: none; }
+    .order-changed-badge.visible { display: inline; }
+  </style>
 </head>
 <body>
   <div class="admin-wrapper">
@@ -22,23 +46,17 @@
       </div>
 
       <div class="split-panel">
-        <!-- ── LEFT: Table ─────────────────────────────────────── -->
+        <!-- ── LEFT: Sortable list ──────────────────────────────── -->
         <div class="card">
           <div class="card-title">All Tools</div>
-          <table>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="toolsBody">
-              <tr><td colspan="5" class="table-empty">Loading...</td></tr>
-            </tbody>
-          </table>
+          <div class="cat-filter-bar" id="catFilterBar"></div>
+          <div class="save-order-bar">
+            <button class="btn btn-secondary btn-sm" onclick="saveOrder()">Save Order</button>
+            <span class="order-changed-badge" id="orderBadge">&#9888; Unsaved order changes</span>
+          </div>
+          <div id="toolsList">
+            <div class="table-empty">Loading...</div>
+          </div>
         </div>
 
         <!-- ── RIGHT: Add / Edit Form ──────────────────────────── -->
@@ -323,9 +341,20 @@
     let allTools  = [];
     let editingId = null;
     let toolCategories = [...DEFAULT_TOOL_CATEGORIES];
+    let activeCategory = 'All';
+    let sortables = [];
+    let orderDirty = false;
 
     function normalizeCategoryName(value) {
       return String(value || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function escHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
     function getOrderedCategories() {
@@ -381,6 +410,152 @@
       showFlash(`Category "${newCategory}" added.`);
     }
 
+    function setOrderDirty(isDirty) {
+      orderDirty = isDirty;
+      document.getElementById('orderBadge').classList.toggle('visible', isDirty);
+    }
+
+    function getSortedToolsForCategory(category) {
+      return allTools
+        .filter(tool => (tool.category || 'General') === category)
+        .sort((a, b) => {
+          const orderDiff = (a.sort_order ?? 0) - (b.sort_order ?? 0);
+          if (orderDiff !== 0) return orderDiff;
+          return (a.created_at || '').localeCompare(b.created_at || '');
+        });
+    }
+
+    function renderCategoryFilters() {
+      const categoriesWithTools = getOrderedCategories().filter(category =>
+        allTools.some(tool => (tool.category || 'General') === category)
+      );
+
+      if (activeCategory !== 'All' && !categoriesWithTools.includes(activeCategory)) {
+        activeCategory = 'All';
+      }
+
+      const filterBar = document.getElementById('catFilterBar');
+      const filters = ['All', ...categoriesWithTools];
+      filterBar.innerHTML = filters.map(category => `
+        <button
+          type="button"
+          class="cat-filter${category === activeCategory ? ' active' : ''}"
+          onclick='setActiveCategory(${JSON.stringify(category)})'
+        >${escHtml(category)}</button>
+      `).join('');
+    }
+
+    function destroySortables() {
+      sortables.forEach(sortable => sortable.destroy());
+      sortables = [];
+    }
+
+    function renderToolsList() {
+      const toolsList = document.getElementById('toolsList');
+      if (allTools.length === 0) {
+        destroySortables();
+        toolsList.innerHTML = '<div class="table-empty">No tools yet.</div>';
+        return;
+      }
+
+      const availableCategories = getOrderedCategories().filter(category =>
+        allTools.some(tool => (tool.category || 'General') === category)
+      );
+      const categoriesToRender = activeCategory === 'All'
+        ? availableCategories
+        : availableCategories.filter(category => category === activeCategory);
+
+      if (categoriesToRender.length === 0) {
+        destroySortables();
+        toolsList.innerHTML = '<div class="table-empty">No tools in this category yet.</div>';
+        return;
+      }
+
+      toolsList.innerHTML = categoriesToRender.map(category => {
+        const tools = getSortedToolsForCategory(category);
+        return `
+          <div class="tool-category-block">
+            <div class="cat-group-label">${escHtml(category)}</div>
+            <div class="tool-category-list" data-category="${escHtml(category)}">
+              ${tools.map(tool => `
+                <div class="tool-row" data-id="${tool.id}">
+                  <span class="drag-handle" title="Drag to reorder">&#9776;</span>
+                  <div class="tool-row-title">${escHtml(tool.title)}</div>
+                  <div class="tool-row-meta">${tool.type === 'file' ? 'Document' : tool.type === 'link' ? 'Link' : '—'}</div>
+                  <div class="tool-row-meta">${tool.is_hidden ? 'Hidden' : 'Visible'}</div>
+                  <div class="td-actions">
+                    <button class="btn btn-secondary btn-sm" type="button" onclick="editTool(${tool.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" type="button" onclick="deleteTool(${tool.id})">Delete</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      destroySortables();
+      document.querySelectorAll('.tool-category-list').forEach(listEl => {
+        sortables.push(new Sortable(listEl, {
+          animation: 150,
+          handle: '.drag-handle',
+          ghostClass: 'sortable-ghost',
+          chosenClass: 'sortable-chosen',
+          onEnd: () => setOrderDirty(true),
+        }));
+      });
+    }
+
+    function renderOrderingUi() {
+      renderCategoryFilters();
+      renderToolsList();
+    }
+
+    function setActiveCategory(category) {
+      activeCategory = category;
+      renderOrderingUi();
+    }
+
+    async function saveOrder() {
+      const updates = [];
+      document.querySelectorAll('.tool-category-list').forEach(listEl => {
+        const category = listEl.dataset.category;
+        [...listEl.children].forEach((row, index) => {
+          updates.push({
+            id: parseInt(row.dataset.id, 10),
+            category,
+            sort_order: index
+          });
+        });
+      });
+
+      if (updates.length === 0) {
+        showFlash('Nothing to reorder.', 'error');
+        return;
+      }
+
+      const updateMap = new Map(updates.map(update => [update.id, update]));
+      try {
+        for (const tool of allTools) {
+          const next = updateMap.get(tool.id);
+          if (!next) continue;
+          await adminFetch('/api/admin/tools', {
+            method: 'PUT',
+            body: JSON.stringify({
+              id: tool.id,
+              sort_order: next.sort_order
+            })
+          });
+        }
+        showFlash('Resource order saved.');
+        setOrderDirty(false);
+        await loadTools();
+      } catch (err) {
+        console.error('Error saving tool order:', err);
+        showFlash('Error saving order.', 'error');
+      }
+    }
+
     function updateImagePreview() {
       const url = document.getElementById('imageUrl').value.trim();
       const previewBox = document.getElementById('imagePreviewBox');
@@ -406,25 +581,8 @@
       const data = await res.json();
       allTools   = data.data || [];
       syncToolCategories();
-      const tbody = document.getElementById('toolsBody');
-      if (allTools.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="table-empty">No tools yet.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = allTools.map(t => `
-        <tr>
-          <td>${escHtml(t.title)}</td>
-          <td class="td-muted">${escHtml(t.category || '—')}</td>
-          <td class="td-muted">${t.type === 'file' ? 'File' : t.type === 'link' ? 'Link' : '—'}</td>
-          <td>${t.is_hidden
-            ? '<span class="badge badge-danger">Hidden</span>'
-            : '<span class="badge badge-muted">Visible</span>'}</td>
-          <td class="td-actions">
-            <button class="btn btn-secondary btn-sm" onclick="editTool(${t.id})">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteTool(${t.id})">Delete</button>
-          </td>
-        </tr>
-      `).join('');
+      setOrderDirty(false);
+      renderOrderingUi();
     }
 
     function editTool(id) {
@@ -523,6 +681,11 @@
     syncToolCategories([], 'General');
     updateImagePreview();
     loadTools();
+
+    window.editTool = editTool;
+    window.deleteTool = deleteTool;
+    window.saveOrder = saveOrder;
+    window.setActiveCategory = setActiveCategory;
   </script>
 </body>
 </html>
