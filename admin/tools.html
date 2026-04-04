@@ -52,16 +52,20 @@
               <input type="text" id="toolTitle" placeholder="Resource title" required />
             </div>
 
-            <div class="form-group">
-              <label for="category">Category</label>
-              <select id="category">
-                <option value="General">General</option>
-                <option value="Enneagram">Enneagram</option>
-                <option value="Leadership">Leadership</option>
-                <option value="Books">Books</option>
-                <option value="Podcasts">Podcasts</option>
-                <option value="Tools">Tools</option>
-              </select>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category"></select>
+              </div>
+
+              <div class="form-group">
+                <label for="newCategory">New Category</label>
+                <div class="category-create-row">
+                  <input type="text" id="newCategory" placeholder="Create a new category" />
+                  <button type="button" class="btn btn-secondary btn-sm" id="addCategoryBtn">Add</button>
+                </div>
+                <div class="form-hint">New categories become reusable after you save a resource with them.</div>
+              </div>
             </div>
 
             <div class="form-group">
@@ -315,8 +319,67 @@
   <script>
     requireAdminAuth();
 
+    const DEFAULT_TOOL_CATEGORIES = ['General', 'Enneagram', 'Leadership', 'Books', 'Podcasts', 'Tools'];
     let allTools  = [];
     let editingId = null;
+    let toolCategories = [...DEFAULT_TOOL_CATEGORIES];
+
+    function normalizeCategoryName(value) {
+      return String(value || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function getOrderedCategories() {
+      const map = new Map();
+      toolCategories.forEach(category => {
+        const normalized = normalizeCategoryName(category);
+        if (!normalized) return;
+        const key = normalized.toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, normalized);
+        }
+      });
+
+      const values = Array.from(map.values());
+      const defaultKeys = new Set(DEFAULT_TOOL_CATEGORIES.map(category => category.toLowerCase()));
+      const customCategories = values
+        .filter(category => !defaultKeys.has(category.toLowerCase()))
+        .sort((a, b) => a.localeCompare(b));
+
+      return [...DEFAULT_TOOL_CATEGORIES, ...customCategories];
+    }
+
+    function syncToolCategories(extraCategories = [], selectedCategory = '') {
+      toolCategories = [
+        ...DEFAULT_TOOL_CATEGORIES,
+        ...allTools.map(tool => tool.category),
+        ...extraCategories
+      ];
+
+      const select = document.getElementById('category');
+      const nextValue = normalizeCategoryName(selectedCategory || select.value || 'General') || 'General';
+      select.innerHTML = getOrderedCategories()
+        .map(category => `<option value="${escHtml(category)}">${escHtml(category)}</option>`)
+        .join('');
+
+      if ([...select.options].some(option => option.value === nextValue)) {
+        select.value = nextValue;
+      } else {
+        select.value = 'General';
+      }
+    }
+
+    function addCategoryToSelect() {
+      const input = document.getElementById('newCategory');
+      const newCategory = normalizeCategoryName(input.value);
+      if (!newCategory) {
+        showFlash('Enter a category name first.', 'error');
+        return;
+      }
+
+      syncToolCategories([newCategory], newCategory);
+      input.value = '';
+      showFlash(`Category "${newCategory}" added.`);
+    }
 
     function updateImagePreview() {
       const url = document.getElementById('imageUrl').value.trim();
@@ -346,6 +409,7 @@
       const res  = await adminFetch('/api/admin/tools');
       const data = await res.json();
       allTools   = data.data || [];
+      syncToolCategories();
       const tbody = document.getElementById('toolsBody');
       if (allTools.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="table-empty">No tools yet.</td></tr>';
@@ -371,9 +435,11 @@
       const t = allTools.find(r => r.id === id);
       if (!t) return;
       editingId = id;
+      syncToolCategories([t.category], t.category || 'General');
       document.getElementById('toolId').value      = id;
       document.getElementById('toolTitle').value   = t.title || '';
       document.getElementById('category').value    = t.category || 'General';
+      document.getElementById('newCategory').value = '';
       document.getElementById('description').value = t.description || '';
       document.getElementById('toolType').value    = t.type || '';
       document.getElementById('fileUrl').value     = t.file_url || '';
@@ -399,6 +465,7 @@
       document.getElementById('formTitle').textContent    = 'Add Tool';
       document.getElementById('saveBtn').textContent      = 'Save Tool';
       document.getElementById('cancelBtn').style.display = 'none';
+      syncToolCategories([], 'General');
       onTypeChange();
       if (window._resetUploadZone) window._resetUploadZone();
       updateImagePreview();
@@ -447,9 +514,17 @@
       }
     });
 
+    document.getElementById('addCategoryBtn').addEventListener('click', addCategoryToSelect);
+    document.getElementById('newCategory').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addCategoryToSelect();
+      }
+    });
     document.getElementById('imageUrl').addEventListener('input', updateImagePreview);
     document.getElementById('imageUrl').addEventListener('change', updateImagePreview);
 
+    syncToolCategories([], 'General');
     updateImagePreview();
     loadTools();
   </script>
