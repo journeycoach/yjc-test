@@ -13,13 +13,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const res = await fetch('/api/content/tools');
-        if (!res.ok) {
-            throw new Error(`Failed to load tools: ${res.status}`);
+        const [toolsRes, settingsRes] = await Promise.all([
+            fetch('/api/content/tools'),
+            fetch('/api/content/settings')
+        ]);
+
+        if (!toolsRes.ok) {
+            throw new Error(`Failed to load tools: ${toolsRes.status}`);
         }
 
-        const payload = await res.json();
+        const payload = await toolsRes.json();
+        const settingsPayload = settingsRes.ok ? await settingsRes.json() : { data: {} };
         const resources = (payload.data || []).map(normalizeTool);
+        let categoryOrder = [];
+
+        try {
+            categoryOrder = JSON.parse(settingsPayload.data?.tools_category_order || '[]');
+            if (!Array.isArray(categoryOrder)) categoryOrder = [];
+        } catch {
+            categoryOrder = [];
+        }
 
         if (resources.length === 0) {
             toolsContainer.innerHTML = '<p style="text-align: center; margin-top: 4rem;">No resources available yet. Check back soon!</p>';
@@ -42,9 +55,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             categories[category].push(resource);
         });
 
+        const orderedCategoryNames = [
+            ...categoryOrder.filter(category => categories[category]),
+            ...Object.keys(categories).filter(category => !categoryOrder.includes(category))
+        ];
+
         toolsContainer.innerHTML = '';
 
-        for (const [categoryName, tools] of Object.entries(categories)) {
+        for (const categoryName of orderedCategoryNames) {
+            const tools = categories[categoryName];
             const section = document.createElement('div');
             section.className = 'category-section fade-in-up';
             if ((categoryName || '').toLowerCase() === 'books') {

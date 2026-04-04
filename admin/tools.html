@@ -7,9 +7,21 @@
   <link rel="stylesheet" href="css/admin.css" />
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <style>
-    .reorder-toolbar { display: flex; gap: 12px; align-items: end; margin-bottom: 12px; flex-wrap: wrap; }
-    .reorder-toolbar .form-group { margin-bottom: 0; min-width: 220px; flex: 1; }
-    .reorder-toolbar .form-hint { margin-top: 6px; }
+    .cat-filter-bar { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+    .cat-filter { padding: 5px 14px; border-radius: 999px; border: 1px solid var(--admin-border); background: var(--admin-card-bg);
+                  color: var(--admin-muted); cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s; }
+    .cat-filter.active { background: var(--admin-accent); color: var(--admin-bg); border-color: var(--admin-accent); }
+    .cat-filter:hover:not(.active) { border-color: var(--admin-accent); color: var(--admin-accent); }
+    .reorder-intro { margin-bottom: 14px; color: var(--admin-muted); font-size: 0.8rem; }
+    .reorder-stack { display: grid; gap: 18px; }
+    .reorder-panel { border: 1px solid var(--admin-border); border-radius: 8px; padding: 14px; background: color-mix(in srgb, var(--admin-card-bg) 85%, black); }
+    .reorder-panel-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--admin-accent); margin: 0 0 10px; }
+    .reorder-panel-hint { margin: 0 0 10px; color: var(--admin-muted); font-size: 0.76rem; }
+    .category-order-list { display: grid; gap: 8px; }
+    .category-order-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--admin-card-bg); border: 1px solid var(--admin-border); border-radius: 6px; }
+    .category-order-name { flex: 1; color: var(--admin-text); font-weight: 500; }
+    .reorder-actions { display: flex; gap: 4px; align-items: center; }
+    .reorder-btn { min-width: 30px; padding: 4px 8px; justify-content: center; }
     .tool-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--admin-card-bg);
                 border: 1px solid var(--admin-border); border-radius: 4px; margin-bottom: 4px; font-size: 0.85rem;
                 transition: box-shadow 0.15s; }
@@ -48,19 +60,25 @@
         <!-- ── LEFT: Sortable list ──────────────────────────────── -->
         <div class="card">
           <div class="card-title">Reorder Resources</div>
-          <div class="reorder-toolbar">
-            <div class="form-group">
-              <label for="reorderCategory">Category To Reorder</label>
-              <select id="reorderCategory"></select>
-              <div class="form-hint">Choose one category, then drag items or use the arrows to move them.</div>
+          <p class="reorder-intro">Use the category buttons to focus a section, then adjust the category order and the resource order independently.</p>
+          <div class="cat-filter-bar" id="catFilterBar"></div>
+          <div class="reorder-stack">
+            <div class="reorder-panel">
+              <div class="reorder-panel-title">Category Order</div>
+              <p class="reorder-panel-hint">This controls the order the categories appear on the public Resources page.</p>
+              <div class="category-order-list" id="categoryOrderList"></div>
+            </div>
+            <div class="reorder-panel">
+              <div class="reorder-panel-title" id="toolOrderTitle">Resources In Category</div>
+              <p class="reorder-panel-hint">Drag items or use the arrows to move resources within the selected category.</p>
+              <div id="toolsList">
+                <div class="table-empty">Loading...</div>
+              </div>
             </div>
           </div>
           <div class="save-order-bar">
             <button class="btn btn-secondary btn-sm" onclick="saveOrder()">Save Order</button>
             <span class="order-changed-badge" id="orderBadge">&#9888; Unsaved order changes</span>
-          </div>
-          <div id="toolsList">
-            <div class="table-empty">Loading...</div>
           </div>
         </div>
 
@@ -346,7 +364,8 @@
     let allTools  = [];
     let editingId = null;
     let toolCategories = [...DEFAULT_TOOL_CATEGORIES];
-    let activeCategory = 'All';
+    let categoryOrder = [];
+    let activeCategory = '';
     let sortables = [];
     let orderDirty = false;
 
@@ -411,8 +430,12 @@
       }
 
       syncToolCategories([newCategory], newCategory);
+      if (!categoryOrder.includes(newCategory)) {
+        categoryOrder.push(newCategory);
+      }
       input.value = '';
       showFlash(`Category "${newCategory}" added.`);
+      renderOrderingUi();
     }
 
     function setOrderDirty(isDirty) {
@@ -436,24 +459,64 @@
       );
     }
 
-    function renderCategoryPicker() {
+    function getEffectiveCategoryOrder() {
       const categoriesWithTools = getAvailableCategories();
+      const ordered = categoryOrder.filter(category => categoriesWithTools.includes(category));
+      const remaining = categoriesWithTools.filter(category => !ordered.includes(category));
+      return [...ordered, ...remaining];
+    }
 
-      if (!categoriesWithTools.length) {
+    function renderCategoryFilters() {
+      const categories = getEffectiveCategoryOrder();
+      if (!categories.length) {
         activeCategory = '';
-        document.getElementById('reorderCategory').innerHTML = '';
+        document.getElementById('catFilterBar').innerHTML = '';
         return;
       }
 
-      if (!activeCategory || !categoriesWithTools.includes(activeCategory)) {
-        activeCategory = categoriesWithTools[0];
+      if (!activeCategory || !categories.includes(activeCategory)) {
+        activeCategory = categories[0];
       }
 
-      const select = document.getElementById('reorderCategory');
-      select.innerHTML = categoriesWithTools
-        .map(category => `<option value="${escHtml(category)}">${escHtml(category)}</option>`)
-        .join('');
-      select.value = activeCategory;
+      document.getElementById('catFilterBar').innerHTML = categories.map(category => `
+        <button
+          type="button"
+          class="cat-filter${category === activeCategory ? ' active' : ''}"
+          onclick='setActiveCategory(${JSON.stringify(category)})'
+        >${escHtml(category)}</button>
+      `).join('');
+    }
+
+    function moveCategory(category, direction) {
+      const categories = getEffectiveCategoryOrder();
+      const index = categories.indexOf(category);
+      const nextIndex = index + direction;
+      if (index === -1 || nextIndex < 0 || nextIndex >= categories.length) return;
+
+      const reordered = [...categories];
+      [reordered[index], reordered[nextIndex]] = [reordered[nextIndex], reordered[index]];
+      categoryOrder = reordered;
+      setOrderDirty(true);
+      renderOrderingUi();
+    }
+
+    function renderCategoryOrderList() {
+      const categories = getEffectiveCategoryOrder();
+      const list = document.getElementById('categoryOrderList');
+      if (!categories.length) {
+        list.innerHTML = '<div class="table-empty">No categories yet.</div>';
+        return;
+      }
+
+      list.innerHTML = categories.map((category, index) => `
+        <div class="category-order-row">
+          <div class="category-order-name">${escHtml(category)}</div>
+          <div class="reorder-actions">
+            <button class="btn btn-ghost btn-sm reorder-btn" type="button" onclick='moveCategory(${JSON.stringify(category)}, -1)' ${index === 0 ? 'disabled' : ''} title="Move category up">↑</button>
+            <button class="btn btn-ghost btn-sm reorder-btn" type="button" onclick='moveCategory(${JSON.stringify(category)}, 1)' ${index === categories.length - 1 ? 'disabled' : ''} title="Move category down">↓</button>
+          </div>
+        </div>
+      `).join('');
     }
 
     function destroySortables() {
@@ -463,6 +526,9 @@
 
     function renderToolsList() {
       const toolsList = document.getElementById('toolsList');
+      document.getElementById('toolOrderTitle').textContent = activeCategory
+        ? `Resources In ${activeCategory}`
+        : 'Resources In Category';
       if (allTools.length === 0) {
         destroySortables();
         toolsList.innerHTML = '<div class="table-empty">No tools yet.</div>';
@@ -524,7 +590,8 @@
     }
 
     function renderOrderingUi() {
-      renderCategoryPicker();
+      renderCategoryFilters();
+      renderCategoryOrderList();
       renderToolsList();
     }
 
@@ -555,35 +622,32 @@
     }
 
     async function saveOrder() {
-      const updates = [];
-      document.querySelectorAll('.tool-category-list').forEach(listEl => {
-        const category = listEl.dataset.category;
-        [...listEl.children].forEach((row, index) => {
-          updates.push({
-            id: parseInt(row.dataset.id, 10),
-            category,
-            sort_order: index
-          });
-        });
-      });
+      const updates = allTools.map(tool => ({
+        id: tool.id,
+        sort_order: tool.sort_order ?? 0
+      }));
 
       if (updates.length === 0) {
         showFlash('Nothing to reorder.', 'error');
         return;
       }
 
-      const updateMap = new Map(updates.map(update => [update.id, update]));
       try {
-        for (const tool of allTools) {
-          const next = updateMap.get(tool.id);
-          if (!next) continue;
-          await adminFetch('/api/admin/tools', {
+        const [toolsRes, settingsRes] = await Promise.all([
+          adminFetch('/api/admin/tools', {
+            method: 'PATCH',
+            body: JSON.stringify({ orders: updates })
+          }),
+          adminFetch('/api/admin/settings', {
             method: 'PUT',
             body: JSON.stringify({
-              id: tool.id,
-              sort_order: next.sort_order
+              tools_category_order: JSON.stringify(getEffectiveCategoryOrder())
             })
-          });
+          })
+        ]);
+
+        if (!toolsRes.ok || !settingsRes.ok) {
+          throw new Error('Failed to save ordering changes');
         }
         showFlash('Resource order saved.');
         setOrderDirty(false);
@@ -615,9 +679,19 @@
     }
 
     async function loadTools() {
-      const res  = await adminFetch('/api/admin/tools');
-      const data = await res.json();
-      allTools   = data.data || [];
+      const [toolsRes, settingsRes] = await Promise.all([
+        adminFetch('/api/admin/tools'),
+        adminFetch('/api/admin/settings')
+      ]);
+      const toolsData = await toolsRes.json();
+      const settingsData = await settingsRes.json();
+      allTools = toolsData.data || [];
+      try {
+        categoryOrder = JSON.parse(settingsData.data?.tools_category_order || '[]');
+        if (!Array.isArray(categoryOrder)) categoryOrder = [];
+      } catch {
+        categoryOrder = [];
+      }
       syncToolCategories();
       setOrderDirty(false);
       renderOrderingUi();
@@ -713,10 +787,6 @@
         addCategoryToSelect();
       }
     });
-    document.getElementById('reorderCategory').addEventListener('change', (e) => {
-      activeCategory = e.target.value;
-      renderToolsList();
-    });
     document.getElementById('imageUrl').addEventListener('input', updateImagePreview);
     document.getElementById('imageUrl').addEventListener('change', updateImagePreview);
 
@@ -729,6 +799,7 @@
     window.saveOrder = saveOrder;
     window.setActiveCategory = setActiveCategory;
     window.moveToolInActiveCategory = moveToolInActiveCategory;
+    window.moveCategory = moveCategory;
   </script>
 </body>
 </html>
