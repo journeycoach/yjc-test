@@ -1,7 +1,7 @@
-// nav.js — Dynamically renders the navbar from the content API with a local fallback.
+// nav.js — Dynamically renders the navbar from the Neon API with a local fallback.
 
 (function () {
-    // Centralized fallback config (used if the content API is unreachable or returns nothing)
+    // Centralized fallback config (used if API is unreachable or returns nothing)
     const FALLBACK_CONFIG = {
         brand_name: 'Your Journey Coach',
         nav_links: [
@@ -40,8 +40,14 @@
         const navList = document.getElementById('nav-links-list');
         if (!logoEl || !navList) return;
 
-        // Brand name
-        logoEl.textContent = config.brand_name || FALLBACK_CONFIG.brand_name;
+        // Keep the logo image, add brand name text alongside it
+        const existingImg = logoEl.querySelector('img');
+        logoEl.innerHTML = '';
+        if (existingImg) logoEl.appendChild(existingImg);
+        const brandSpan = document.createElement('span');
+        brandSpan.className = 'logo-brand';
+        brandSpan.textContent = config.brand_name || FALLBACK_CONFIG.brand_name;
+        logoEl.appendChild(brandSpan);
 
         // Detect current page for active-state highlighting
         const currentPage = window.location.pathname.split('/').pop() || 'index.html';
@@ -58,7 +64,7 @@
         });
 
         if (hasValidAdminSession()) {
-            html += `<li><a href="admin/dashboard.html">Admin</a></li>`;
+            html += `<li><a href="/admin">Admin</a></li>`;
         }
 
         // CTA button
@@ -70,23 +76,18 @@
         navList.innerHTML = html;
     }
 
-    async function fetchNavigation() {
-        const res = await fetch('/api/content/navigation');
-        if (!res.ok) {
-            throw new Error(`Navigation request failed: ${res.status}`);
-        }
-        const payload = await res.json();
-        return payload.data || null;
-    }
-
     function init() {
-        // Race the API fetch against a 2-second timeout so the nav always renders quickly.
-        // If the API is unreachable or slow, the fallback config is used immediately.
+        // Race API fetch against a 2-second timeout so the nav always renders quickly.
+        // If API is unreachable or slow, the fallback config is used immediately.
         const timeout = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('nav timeout')), 2000)
         );
 
-        Promise.race([fetchNavigation(), timeout])
+        const apiFetch = fetch('/api/content?type=navigation')
+            .then(r => r.json())
+            .then(d => d.data);
+
+        Promise.race([apiFetch, timeout])
             .then(config => {
                 renderNav(config || FALLBACK_CONFIG);
             })
