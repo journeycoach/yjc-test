@@ -474,11 +474,11 @@
         return;
       }
 
-      if (!activeCategory || !categories.includes(activeCategory)) {
-        activeCategory = categories[0];
+      if (!activeCategory || (activeCategory !== 'All' && !categories.includes(activeCategory))) {
+        activeCategory = 'All';
       }
 
-      document.getElementById('catFilterBar').innerHTML = categories.map(category => `
+      document.getElementById('catFilterBar').innerHTML = ['All', ...categories].map(category => `
         <button
           type="button"
           class="cat-filter${category === activeCategory ? ' active' : ''}"
@@ -526,16 +526,22 @@
 
     function renderToolsList() {
       const toolsList = document.getElementById('toolsList');
-      document.getElementById('toolOrderTitle').textContent = activeCategory
-        ? `Resources In ${activeCategory}`
-        : 'Resources In Category';
+      document.getElementById('toolOrderTitle').textContent = activeCategory === 'All'
+        ? 'Resources In All Categories'
+        : activeCategory
+          ? `Resources In ${activeCategory}`
+          : 'Resources In Category';
       if (allTools.length === 0) {
         destroySortables();
         toolsList.innerHTML = '<div class="table-empty">No tools yet.</div>';
         return;
       }
 
-      const categoriesToRender = activeCategory ? [activeCategory] : [];
+      const categoriesToRender = activeCategory === 'All'
+        ? getEffectiveCategoryOrder()
+        : activeCategory
+          ? [activeCategory]
+          : [];
 
       if (categoriesToRender.length === 0) {
         destroySortables();
@@ -596,9 +602,11 @@
     }
 
     function moveToolInActiveCategory(id, direction) {
-      if (!activeCategory) return;
+      const tool = allTools.find(item => item.id === id);
+      const category = tool?.category || 'General';
+      if (!category) return;
 
-      const toolsInCategory = getSortedToolsForCategory(activeCategory);
+      const toolsInCategory = getSortedToolsForCategory(category);
       const currentIndex = toolsInCategory.findIndex(tool => tool.id === id);
       const nextIndex = currentIndex + direction;
 
