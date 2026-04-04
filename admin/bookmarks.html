@@ -124,10 +124,6 @@
     let editingCatId = null;
     let editingBmId = null;
 
-    function escHtml(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
     // ===== CATEGORIES =====
 
     function renderCategories() {
@@ -316,6 +312,10 @@
         adminFetch('/api/admin/bookmark-categories'),
         adminFetch('/api/admin/bookmarks')
       ]);
+      if (!catRes.ok || !bmRes.ok) {
+        showFlash('Error loading data.', 'error');
+        return;
+      }
       const catData = await catRes.json();
       const bmData  = await bmRes.json();
       allCategories = catData.data || [];

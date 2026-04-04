@@ -72,10 +72,6 @@
     let allTestimonials = [];
     let editingId = null;
 
-    function escHtml(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
     async function loadTestimonials() {
       const res  = await adminFetch('/api/admin/testimonials');
       const data = await res.json();

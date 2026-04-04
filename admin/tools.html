@@ -394,10 +394,6 @@
       previewBox.hidden = false;
     }
 
-    function escHtml(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
     function onTypeChange() {
       const type = document.getElementById('toolType').value;
       document.getElementById('fileUploadGroup').style.display  = type === 'file' ? 'block' : 'none';

@@ -33,14 +33,33 @@ const ADMIN_PAGE_LABELS = {
   'contacts.html': 'Contact Submissions'
 };
 
-// Check auth on page load (call this on every protected page)
+// Check auth on page load — also validates token expiration
 function requireAdminAuth() {
   const token = localStorage.getItem('admin_token');
   if (!token) {
     window.location.href = '/admin/index.html';
     return null;
   }
+  // Verify token hasn't expired (payload is base64-encoded expiry timestamp)
+  try {
+    const [payload] = token.split('.');
+    if (payload) {
+      const expires = parseInt(atob(payload), 10);
+      if (Date.now() >= expires) {
+        localStorage.removeItem('admin_token');
+        window.location.href = '/admin/index.html';
+        return null;
+      }
+    }
+  } catch {
+    // If token can't be parsed, let the API reject it
+  }
   return token;
+}
+
+// HTML-escape a string (used across all admin pages)
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // Authenticated fetch wrapper

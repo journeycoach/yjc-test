@@ -7,15 +7,15 @@
   <link rel="stylesheet" href="css/admin.css" />
   <style>
     .submission-card {
-      background: var(--color-card);
-      border: 1px solid var(--color-border);
+      background: var(--admin-card-bg);
+      border: 1px solid var(--admin-border);
       border-radius: 6px;
       padding: 1.25rem 1.5rem;
       margin-bottom: 1rem;
       transition: border-color 0.2s;
     }
     .submission-card.unread {
-      border-left: 3px solid var(--color-gold);
+      border-left: 3px solid var(--admin-accent);
     }
     .submission-card.read {
       opacity: 0.7;
@@ -30,16 +30,16 @@
     .submission-name {
       font-weight: 600;
       font-size: 1rem;
-      color: var(--color-text);
+      color: var(--admin-text);
     }
     .submission-date {
       font-size: 0.8rem;
-      color: var(--color-muted);
+      color: var(--admin-muted);
       margin-left: auto;
     }
     .submission-detail {
       font-size: 0.85rem;
-      color: var(--color-muted);
+      color: var(--admin-muted);
       margin-bottom: 0.25rem;
     }
     .submission-message {
@@ -48,7 +48,7 @@
       background: rgba(255,255,255,0.03);
       border-radius: 4px;
       font-size: 0.9rem;
-      color: var(--color-text);
+      color: var(--admin-text);
       white-space: pre-wrap;
       line-height: 1.6;
     }
@@ -58,7 +58,7 @@
       margin-top: 1rem;
     }
     .unread-badge {
-      background: var(--color-gold);
+      background: var(--admin-accent);
       color: #1a1d1e;
       font-size: 0.65rem;
       font-weight: 700;
@@ -76,12 +76,12 @@
     }
     .filter-bar span {
       font-size: 0.85rem;
-      color: var(--color-muted);
+      color: var(--admin-muted);
     }
     .empty-state {
       text-align: center;
       padding: 4rem 1rem;
-      color: var(--color-muted);
+      color: var(--admin-muted);
     }
     .empty-state p { margin-top: 0.5rem; font-size: 0.9rem; }
   </style>
@@ -97,7 +97,7 @@
 
     <main class="admin-main">
       <div class="admin-page-title">
-        <h1>Contact Submissions <span id="unreadCount" style="font-size:1rem;font-weight:400;color:var(--color-gold);"></span></h1>
+        <h1>Contact Submissions <span id="unreadCount" style="font-size:1rem;font-weight:400;color:var(--admin-accent);"></span></h1>
         <a href="dashboard.html" class="back-link">&#8592; Dashboard</a>
       </div>
 
@@ -160,7 +160,7 @@
             ${!s.is_read ? '<span class="unread-badge">New</span>' : ''}
             <span class="submission-date">${formatDate(s.submitted_at)}</span>
           </div>
-          <div class="submission-detail">&#9993; <a href="mailto:${escHtml(s.email)}" style="color:var(--color-gold)">${escHtml(s.email)}</a></div>
+          <div class="submission-detail">&#9993; <a href="mailto:${escHtml(s.email)}" style="color:var(--admin-accent)">${escHtml(s.email)}</a></div>
           <div class="submission-detail">&#128222; ${escHtml(s.phone || '—')}</div>
           <div class="submission-detail">&#127775; ${escHtml(s.interest || '—')}</div>
           <div class="submission-message">${escHtml(s.message || '')}</div>
@@ -210,10 +210,6 @@
         render();
         showFlash('Submission deleted.');
       }
-    }
-
-    function escHtml(str) {
-      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     loadSubmissions();

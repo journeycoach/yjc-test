@@ -62,10 +62,6 @@
       }
     }
 
-    function escHtml(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
     async function loadPosts() {
       const res = await adminFetch('/api/admin/posts');
       const data = await res.json();

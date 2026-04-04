@@ -381,6 +381,25 @@ textarea:focus {
   box-shadow: 0 0 0 2px var(--admin-accent-soft);
 }
 
+/* .form-control — alias for inputs/selects/textareas used in some pages */
+.form-control {
+  width: 100%;
+  background-color: var(--admin-card-bg-soft);
+  color: var(--admin-text);
+  border: 1px solid #3a3e42;
+  border-radius: 4px;
+  padding: 9px 12px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-control:focus {
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 2px var(--admin-accent-soft);
+}
+
 input::placeholder,
 textarea::placeholder {
   color: #555;
