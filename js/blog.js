@@ -75,14 +75,23 @@ document.addEventListener('DOMContentLoaded', () => {
         postTitle.textContent = post.title;
         postAuthor.textContent = post.author || 'Your Journey Coach';
 
-        const imageHtml = post.image_url
-            ? `<img src="${post.image_url}" alt="${post.title || ''}" style="width:100%; max-height:400px; object-fit:cover; border-radius:8px; margin-bottom:2rem;">`
-            : '';
+        postContent.innerHTML = '';
+
+        if (post.image_url) {
+            const img = document.createElement('img');
+            img.src = post.image_url;
+            img.alt = post.title || '';
+            img.style.cssText = 'width:100%;max-height:400px;object-fit:cover;border-radius:8px;margin-bottom:2rem;';
+            postContent.appendChild(img);
+        }
+
         const bodyHtml = typeof post.body === 'string' && post.body.trim()
             ? post.body
             : '<p><em>Content could not be loaded.</em></p>';
 
-        postContent.innerHTML = imageHtml + bodyHtml;
+        const bodyContainer = document.createElement('div');
+        bodyContainer.innerHTML = bodyHtml;
+        postContent.appendChild(bodyContainer);
     }
 
     backBtn.addEventListener('click', () => {

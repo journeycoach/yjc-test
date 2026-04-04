@@ -28,9 +28,9 @@ export default async function handler(req, res) {
         const rows = await sql`
           SELECT id, title, category, description, type,
             file_url as "fileUrl",
-            external_url,
+            external_url as "externalUrl",
             is_hidden as "isHidden",
-            image_url
+            image_url as "imageUrl"
           FROM tools
           ORDER BY sort_order ASC, created_at ASC
         `;
