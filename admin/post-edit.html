@@ -38,9 +38,25 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="imageUrl">Featured Image URL</label>
-            <input type="url" id="imageUrl" placeholder="https://... (paste URL of hosted image)" />
-            <div class="form-hint">Paste the full URL of a hosted image (e.g. from Cloudinary or similar).</div>
+            <label>Featured Image</label>
+            <div class="upload-zone" id="imageUploadZone">
+              <input type="file" id="imageInput" accept=".jpg,.jpeg,.png,.gif,.webp,.svg" style="display:none;" />
+              <div class="upload-zone-icon" id="imageUploadIcon">🖼️</div>
+              <div class="upload-zone-label" id="imageUploadLabel">Click or drag an image here</div>
+              <div class="upload-zone-hint">JPG, PNG, GIF, WebP, or SVG — up to 10 MB</div>
+              <div class="upload-progress-bar" id="imageProgressBar" style="display:none;">
+                <div class="upload-progress-fill" id="imageProgressFill"></div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="imageUrl">Or paste an image URL</label>
+            <input type="url" id="imageUrl" placeholder="https://..." />
+            <div class="form-hint">Upload above or paste a URL. The URL field is filled automatically after upload.</div>
+          </div>
+          <div class="resource-image-preview" id="imagePreviewBox" hidden>
+            <div class="resource-image-preview-label">Preview</div>
+            <img id="imagePreview" alt="Featured image preview" />
           </div>
           <div class="form-group">
             <label for="summary">Summary</label>
@@ -64,6 +80,78 @@
   </div>
 
   <script src="js/admin.js"></script>
+
+  <script type="module">
+    import { upload } from 'https://esm.sh/@vercel/blob/client';
+
+    const zone  = document.getElementById('imageUploadZone');
+    const input = document.getElementById('imageInput');
+    const icon  = document.getElementById('imageUploadIcon');
+    const label = document.getElementById('imageUploadLabel');
+    const bar   = document.getElementById('imageProgressBar');
+    const fill  = document.getElementById('imageProgressFill');
+    const urlField = document.getElementById('imageUrl');
+
+    zone.addEventListener('click', () => { if (!zone.classList.contains('uploading')) input.click(); });
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const file = e.dataTransfer?.files?.[0];
+      if (file) handleFile(file);
+    });
+    input.addEventListener('change', () => { if (input.files?.[0]) handleFile(input.files[0]); });
+
+    async function handleFile(file) {
+      const token = localStorage.getItem('admin_token');
+      if (!token) { showFlash('Not authenticated.', 'error'); return; }
+
+      zone.classList.add('uploading');
+      zone.classList.remove('has-file', 'drag-over');
+      icon.textContent  = '⏳';
+      label.textContent = `Uploading ${file.name}…`;
+      bar.style.display = 'block';
+      fill.style.width  = '0%';
+
+      try {
+        const blob = await upload(file.name, file, {
+          access: 'public',
+          handleUploadUrl: '/api/admin/posts?action=upload',
+          clientPayload: token,
+          onUploadProgress: ({ percentage }) => {
+            fill.style.width  = percentage + '%';
+            label.textContent = `Uploading ${file.name}… ${percentage}%`;
+          },
+        });
+
+        urlField.value = blob.url;
+        urlField.dispatchEvent(new Event('input', { bubbles: true }));
+        zone.classList.remove('uploading');
+        zone.classList.add('has-file');
+        icon.textContent  = '✅';
+        label.textContent = file.name;
+        bar.style.display = 'none';
+        showFlash('Image uploaded.');
+      } catch (err) {
+        zone.classList.remove('uploading');
+        icon.textContent  = '❌';
+        label.textContent = 'Upload failed — ' + (err.message || 'unknown error');
+        bar.style.display = 'none';
+        showFlash('Upload failed: ' + (err.message || 'unknown error'), 'error');
+      }
+      input.value = '';
+    }
+
+    // When editing a post that already has an image, reflect that in the zone
+    window._setImageZoneFromUrl = function(url) {
+      if (!url) return;
+      zone.classList.add('has-file');
+      icon.textContent  = '✅';
+      label.textContent = 'Image on record — upload a new image to replace';
+    };
+  </script>
+
   <script>
     requireAdminAuth();
 
@@ -90,6 +178,8 @@
       document.getElementById('imageUrl').value = post.image_url || '';
       document.getElementById('summary').value = post.summary || '';
       document.getElementById('body').value = post.body || '';
+      updateImagePreview();
+      if (post.image_url && window._setImageZoneFromUrl) window._setImageZoneFromUrl(post.image_url);
       if (post.post_date) {
         // Convert ISO date to datetime-local format
         const d = new Date(post.post_date);
@@ -98,6 +188,16 @@
         document.getElementById('postDate').value = local;
       }
     }
+
+    function updateImagePreview() {
+      const url = document.getElementById('imageUrl').value.trim();
+      const box = document.getElementById('imagePreviewBox');
+      const img = document.getElementById('imagePreview');
+      if (url) { img.src = url; box.hidden = false; }
+      else { img.removeAttribute('src'); box.hidden = true; }
+    }
+
+    document.getElementById('imageUrl').addEventListener('input', updateImagePreview);
 
     function togglePreview() {
       previewVisible = !previewVisible;

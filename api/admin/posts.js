@@ -1,8 +1,33 @@
 import { sql } from '../_db.js';
-import { requireAuth } from '../_auth.js';
+import { requireAuth, verifyToken } from '../_auth.js';
+import { handleUpload } from '@vercel/blob/client';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  if (req.query.action === 'upload') {
+    try {
+      const jsonResponse = await handleUpload({
+        body: req.body,
+        request: req,
+        onBeforeGenerateToken: async (_pathname, clientPayload) => {
+          if (!verifyToken(clientPayload || '')) throw new Error('Unauthorized');
+          return {
+            allowedContentTypes: [
+              'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+            ],
+            addRandomSuffix: true,
+            maximumSizeInBytes: 10 * 1024 * 1024, // 10 MB
+          };
+        },
+      });
+      return res.status(200).json(jsonResponse);
+    } catch (err) {
+      console.error('Post image upload error:', err);
+      return res.status(err.message === 'Unauthorized' ? 401 : 400).json({ error: err.message });
+    }
+  }
+
   if (!requireAuth(req, res)) return;
 
   if (req.method === 'GET') {
