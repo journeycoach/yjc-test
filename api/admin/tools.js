@@ -29,6 +29,7 @@ export default async function handler(req, res) {
               'application/vnd.ms-powerpoint',
               'application/vnd.openxmlformats-officedocument.presentationml.presentation',
             ],
+            addRandomSuffix: true,
             maximumSizeInBytes: 50 * 1024 * 1024, // 50 MB
           };
         },
