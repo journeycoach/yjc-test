@@ -7,14 +7,9 @@
   <link rel="stylesheet" href="css/admin.css" />
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <style>
-    .cat-filter-bar { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
-    .cat-filter { padding: 5px 14px; border-radius: 4px; border: 1px solid var(--admin-border); background: var(--admin-card-bg);
-                  color: var(--admin-muted); cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s; }
-    .cat-filter.active { background: var(--admin-accent); color: var(--admin-bg); border-color: var(--admin-accent); }
-    .cat-filter:hover:not(.active) { border-color: var(--admin-accent); color: var(--admin-accent); }
-    .cat-group-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-                       color: var(--admin-accent); margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--admin-border); }
-    .cat-group-label:first-child { margin-top: 0; }
+    .reorder-toolbar { display: flex; gap: 12px; align-items: end; margin-bottom: 12px; flex-wrap: wrap; }
+    .reorder-toolbar .form-group { margin-bottom: 0; min-width: 220px; flex: 1; }
+    .reorder-toolbar .form-hint { margin-top: 6px; }
     .tool-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--admin-card-bg);
                 border: 1px solid var(--admin-border); border-radius: 4px; margin-bottom: 4px; font-size: 0.85rem;
                 transition: box-shadow 0.15s; }
@@ -28,6 +23,10 @@
     .save-order-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
     .order-changed-badge { font-size: 0.8rem; color: var(--admin-accent); display: none; }
     .order-changed-badge.visible { display: inline; }
+    .reorder-section-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+                             color: var(--admin-accent); margin: 0 0 10px; }
+    .row-move-actions { display: flex; gap: 4px; align-items: center; }
+    .row-move-btn { min-width: 30px; padding: 4px 8px; justify-content: center; }
   </style>
 </head>
 <body>
@@ -48,8 +47,14 @@
       <div class="split-panel">
         <!-- ── LEFT: Sortable list ──────────────────────────────── -->
         <div class="card">
-          <div class="card-title">All Tools</div>
-          <div class="cat-filter-bar" id="catFilterBar"></div>
+          <div class="card-title">Reorder Resources</div>
+          <div class="reorder-toolbar">
+            <div class="form-group">
+              <label for="reorderCategory">Category To Reorder</label>
+              <select id="reorderCategory"></select>
+              <div class="form-hint">Choose one category, then drag items or use the arrows to move them.</div>
+            </div>
+          </div>
           <div class="save-order-bar">
             <button class="btn btn-secondary btn-sm" onclick="saveOrder()">Save Order</button>
             <span class="order-changed-badge" id="orderBadge">&#9888; Unsaved order changes</span>
@@ -425,24 +430,30 @@
         });
     }
 
-    function renderCategoryFilters() {
-      const categoriesWithTools = getOrderedCategories().filter(category =>
+    function getAvailableCategories() {
+      return getOrderedCategories().filter(category =>
         allTools.some(tool => (tool.category || 'General') === category)
       );
+    }
 
-      if (activeCategory !== 'All' && !categoriesWithTools.includes(activeCategory)) {
-        activeCategory = 'All';
+    function renderCategoryPicker() {
+      const categoriesWithTools = getAvailableCategories();
+
+      if (!categoriesWithTools.length) {
+        activeCategory = '';
+        document.getElementById('reorderCategory').innerHTML = '';
+        return;
       }
 
-      const filterBar = document.getElementById('catFilterBar');
-      const filters = ['All', ...categoriesWithTools];
-      filterBar.innerHTML = filters.map(category => `
-        <button
-          type="button"
-          class="cat-filter${category === activeCategory ? ' active' : ''}"
-          onclick='setActiveCategory(${JSON.stringify(category)})'
-        >${escHtml(category)}</button>
-      `).join('');
+      if (!activeCategory || !categoriesWithTools.includes(activeCategory)) {
+        activeCategory = categoriesWithTools[0];
+      }
+
+      const select = document.getElementById('reorderCategory');
+      select.innerHTML = categoriesWithTools
+        .map(category => `<option value="${escHtml(category)}">${escHtml(category)}</option>`)
+        .join('');
+      select.value = activeCategory;
     }
 
     function destroySortables() {
@@ -458,12 +469,7 @@
         return;
       }
 
-      const availableCategories = getOrderedCategories().filter(category =>
-        allTools.some(tool => (tool.category || 'General') === category)
-      );
-      const categoriesToRender = activeCategory === 'All'
-        ? availableCategories
-        : availableCategories.filter(category => category === activeCategory);
+      const categoriesToRender = activeCategory ? [activeCategory] : [];
 
       if (categoriesToRender.length === 0) {
         destroySortables();
@@ -475,14 +481,18 @@
         const tools = getSortedToolsForCategory(category);
         return `
           <div class="tool-category-block">
-            <div class="cat-group-label">${escHtml(category)}</div>
+            <div class="reorder-section-label">${escHtml(category)}</div>
             <div class="tool-category-list" data-category="${escHtml(category)}">
-              ${tools.map(tool => `
+              ${tools.map((tool, index) => `
                 <div class="tool-row" data-id="${tool.id}">
                   <span class="drag-handle" title="Drag to reorder">&#9776;</span>
                   <div class="tool-row-title">${escHtml(tool.title)}</div>
                   <div class="tool-row-meta">${tool.type === 'file' ? 'Document' : tool.type === 'link' ? 'Link' : '—'}</div>
                   <div class="tool-row-meta">${tool.is_hidden ? 'Hidden' : 'Visible'}</div>
+                  <div class="row-move-actions">
+                    <button class="btn btn-ghost btn-sm row-move-btn" type="button" onclick="moveToolInActiveCategory(${tool.id}, -1)" ${index === 0 ? 'disabled' : ''} title="Move up">↑</button>
+                    <button class="btn btn-ghost btn-sm row-move-btn" type="button" onclick="moveToolInActiveCategory(${tool.id}, 1)" ${index === tools.length - 1 ? 'disabled' : ''} title="Move down">↓</button>
+                  </div>
                   <div class="td-actions">
                     <button class="btn btn-secondary btn-sm" type="button" onclick="editTool(${tool.id})">Edit</button>
                     <button class="btn btn-danger btn-sm" type="button" onclick="deleteTool(${tool.id})">Delete</button>
@@ -501,13 +511,41 @@
           handle: '.drag-handle',
           ghostClass: 'sortable-ghost',
           chosenClass: 'sortable-chosen',
-          onEnd: () => setOrderDirty(true),
+          onEnd: () => {
+            [...listEl.children].forEach((row, index) => {
+              const tool = allTools.find(item => item.id === parseInt(row.dataset.id, 10));
+              if (tool) tool.sort_order = index;
+            });
+            setOrderDirty(true);
+            renderToolsList();
+          },
         }));
       });
     }
 
     function renderOrderingUi() {
-      renderCategoryFilters();
+      renderCategoryPicker();
+      renderToolsList();
+    }
+
+    function moveToolInActiveCategory(id, direction) {
+      if (!activeCategory) return;
+
+      const toolsInCategory = getSortedToolsForCategory(activeCategory);
+      const currentIndex = toolsInCategory.findIndex(tool => tool.id === id);
+      const nextIndex = currentIndex + direction;
+
+      if (currentIndex === -1 || nextIndex < 0 || nextIndex >= toolsInCategory.length) {
+        return;
+      }
+
+      const reordered = [...toolsInCategory];
+      [reordered[currentIndex], reordered[nextIndex]] = [reordered[nextIndex], reordered[currentIndex]];
+      reordered.forEach((tool, index) => {
+        tool.sort_order = index;
+      });
+
+      setOrderDirty(true);
       renderToolsList();
     }
 
@@ -675,6 +713,10 @@
         addCategoryToSelect();
       }
     });
+    document.getElementById('reorderCategory').addEventListener('change', (e) => {
+      activeCategory = e.target.value;
+      renderToolsList();
+    });
     document.getElementById('imageUrl').addEventListener('input', updateImagePreview);
     document.getElementById('imageUrl').addEventListener('change', updateImagePreview);
 
@@ -686,6 +728,7 @@
     window.deleteTool = deleteTool;
     window.saveOrder = saveOrder;
     window.setActiveCategory = setActiveCategory;
+    window.moveToolInActiveCategory = moveToolInActiveCategory;
   </script>
 </body>
 </html>
