@@ -110,6 +110,21 @@ export default async function handler(req, res) {
     }
   }
 
+  if (req.method === 'PATCH') {
+    // Bulk sort order update: { orders: [{ id, sort_order }, ...] }
+    const { orders } = req.body || {};
+    if (!Array.isArray(orders)) return res.status(400).json({ error: 'orders array is required' });
+    try {
+      for (const { id, sort_order } of orders) {
+        await sql`UPDATE tools SET sort_order = ${sort_order} WHERE id = ${id}`;
+      }
+      return res.status(200).json({ ok: true });
+    } catch (err) {
+      console.error('tools PATCH error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+  }
+
   if (req.method === 'DELETE') {
     const { id } = req.body || {};
     if (!id) return res.status(400).json({ error: 'id is required' });
