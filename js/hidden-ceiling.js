@@ -269,6 +269,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    action: 'hidden_ceiling',
                     name: state.name,
                     email: state.email,
                     company: state.company,
