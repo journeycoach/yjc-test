@@ -144,6 +144,28 @@ async function setup() {
     // Table may not exist yet — safe to ignore
   }
 
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS hidden_ceiling_submissions (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        result_center VARCHAR(20) NOT NULL,
+        heart_score INTEGER DEFAULT 0,
+        head_score INTEGER DEFAULT 0,
+        action_score INTEGER DEFAULT 0,
+        answers JSONB NOT NULL DEFAULT '{}'::jsonb,
+        source VARCHAR(100),
+        guide_filename VARCHAR(255),
+        email_sent BOOLEAN DEFAULT FALSE,
+        submitted_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    console.log('✓ hidden_ceiling_submissions table ready');
+  } catch (err) {
+    console.error('✗ Failed to create hidden_ceiling_submissions table:', err.message);
+  }
+
   // Insert default navigation row if empty
   try {
     await sql`
