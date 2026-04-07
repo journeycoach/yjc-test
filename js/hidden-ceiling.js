@@ -10,7 +10,7 @@
         {
             id: 'q1',
             eyebrow: 'Question 1 of 7',
-            title: 'When a high-stakes project hits a major roadblock, what is your first internal reaction?',
+            title: 'When a high-stakes initiative suddenly goes off track, what is your first internal reaction?',
             options: [
                 { title: 'Option 1', text: 'I pull back to analyze the data and find where the logic failed.' },
                 { title: 'Option 2', text: 'I move quickly to take charge and get things back on track.' },
@@ -20,7 +20,7 @@
         {
             id: 'q2',
             eyebrow: 'Question 2 of 7',
-            title: 'What does your team likely wish you did more of?',
+            title: 'Under pressure, what do others most often need more of from you?',
             options: [
                 { title: 'Option 1', text: 'Move forward with less over-analysis and trust your judgment sooner.' },
                 { title: 'Option 2', text: 'Be more direct about priorities instead of managing everyone\'s feelings first.' },
@@ -30,7 +30,7 @@
         {
             id: 'q3',
             eyebrow: 'Question 3 of 7',
-            title: 'In strategic meetings, you feel most in your element when discussing:',
+            title: 'In high-level leadership conversations, where do you naturally contribute most?',
             options: [
                 { title: 'Option 1', text: 'Systems, long-term implications, and what risks others may be missing.' },
                 { title: 'Option 2', text: 'How people will experience the decision and what it will mean relationally.' },
@@ -40,7 +40,7 @@
         {
             id: 'q4',
             eyebrow: 'Question 4 of 7',
-            title: 'When you receive critical feedback from a peer, what is your instinct?',
+            title: 'When a peer gives you hard feedback, what is your first instinct?',
             options: [
                 { title: 'Option 1', text: 'Wonder what it means about the relationship or how you are being perceived.' },
                 { title: 'Option 2', text: 'Step back and assess whether the feedback is accurate and logically sound.' },
@@ -50,7 +50,7 @@
         {
             id: 'q5',
             eyebrow: 'Question 5 of 7',
-            title: 'In a team meeting, what do you value most in others\' contributions?',
+            title: 'In leadership meetings, what kind of contribution do you instinctively value most?',
             options: [
                 { title: 'Option 1', text: 'Clear thinking, objectivity, and well-reasoned ideas.' },
                 { title: 'Option 2', text: 'Awareness of people, tone, and how decisions affect the room.' },
@@ -60,7 +60,7 @@
         {
             id: 'q6',
             eyebrow: 'Question 6 of 7',
-            title: 'How do you feel about working with a complex, detailed spreadsheet?',
+            title: 'When faced with a dense set of details, metrics, or analysis, what is your natural response?',
             options: [
                 { title: 'Option 1', text: 'I can do it, but I\'d rather focus on the people and context behind the numbers.' },
                 { title: 'Option 2', text: 'I enjoy it when it helps me understand patterns, structure, and what is really going on.' },
@@ -70,7 +70,7 @@
         {
             id: 'q7',
             eyebrow: 'Question 7 of 7',
-            title: 'Ultimately, what is the "true north" for your leadership style?',
+            title: 'When the pressure is high, what most naturally guides your leadership decisions?',
             options: [
                 { title: 'Option 1', text: 'Connection: staying aligned with people, meaning, and shared purpose.' },
                 { title: 'Option 2', text: 'Truth: understanding what is accurate, objective, and really happening.' },
