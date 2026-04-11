@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Vercel Dev (yourjourneycoach.com)",
+      "runtimeExecutable": "/Users/johnpaine/.nvm/versions/node/v20.20.1/bin/node",
+      "runtimeArgs": ["/Users/johnpaine/.nvm/versions/node/v20.20.1/bin/vercel", "dev", "--yes"],
+      "port": 3000
+    }
+  ]
+}

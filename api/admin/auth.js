@@ -17,7 +17,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server misconfiguration' });
   }
 
-  // Use timing-safe comparison
   let match = false;
   try {
     const a = Buffer.from(password);

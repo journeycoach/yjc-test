@@ -1,8 +1,6 @@
 // Main JavaScript for Executive Coach Website
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Executive Coach Site Loaded');
-
     function getContactScrollOffset() {
         return window.innerWidth <= 768 ? 56 : 92;
     }
@@ -84,25 +82,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
     revealElements.forEach(el => revealObserver.observe(el));
 
-    // 4. Navbar Scroll Effect
+    // 4. Navbar Scroll Effect + mobile hide-on-scroll-down
     const navbar = document.querySelector('.navbar');
     if (navbar) {
+        let lastScrollY = window.scrollY;
+
         const handleScroll = () => {
-            if (window.scrollY > 50) {
+            const currentScrollY = window.scrollY;
+            const onMobile = window.innerWidth <= 768;
+
+            // Scrolled state — triggers background on all screen sizes
+            if (currentScrollY > 50) {
                 navbar.classList.add('scrolled');
             } else {
                 navbar.classList.remove('scrolled');
             }
+
+            // Hide on scroll-down / show on scroll-up — mobile only
+            if (onMobile) {
+                const scrollingDown = currentScrollY > lastScrollY + 4; // small deadzone
+                const scrollingUp  = currentScrollY < lastScrollY - 4;
+                const menuOpen     = navbar.classList.contains('nav-open');
+
+                if (scrollingDown && currentScrollY > 60 && !menuOpen) {
+                    navbar.classList.add('nav-hidden');
+                } else if (scrollingUp) {
+                    navbar.classList.remove('nav-hidden');
+                }
+
+                // Always show at very top
+                if (currentScrollY <= 10) {
+                    navbar.classList.remove('nav-hidden');
+                }
+            } else {
+                navbar.classList.remove('nav-hidden');
+            }
+
+            lastScrollY = currentScrollY;
         };
-        window.addEventListener('scroll', handleScroll);
-        handleScroll(); // Check on initial load
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll();
+    }
+
+    // 4b. Hamburger Menu Toggle
+    const hamburger = document.getElementById('hamburger');
+    if (hamburger && navbar) {
+        hamburger.addEventListener('click', () => {
+            navbar.classList.toggle('nav-open');
+        });
+
+        // Close menu when a nav link is clicked
+        // Use delegation on the parent since nav.js adds links dynamically
+        const navLinksList = document.getElementById('nav-links-list');
+        if (navLinksList) {
+            navLinksList.addEventListener('click', (e) => {
+                if (e.target.closest('a')) {
+                    navbar.classList.remove('nav-open');
+                }
+            });
+        }
+
+        // Close menu when clicking outside the navbar
+        document.addEventListener('click', (e) => {
+            if (!navbar.contains(e.target)) {
+                navbar.classList.remove('nav-open');
+            }
+        });
     }
 
 
     // 5. Dynamic Testimonials Rotation
     const testimonialsContainer = document.getElementById('testimonials-container');
     if (testimonialsContainer) {
-        fetch('/api/content/testimonials')
+        fetch('/api/content?type=testimonials')
             .then(res => {
                 if (!res.ok) throw new Error(`Testimonials request failed: ${res.status}`);
                 return res.json();

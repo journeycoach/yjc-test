@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.addEventListener('click', () => {
                 renderSinglePost(index);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-                window.location.hash = 'post-' + index;
+                window.location.hash = 'post-' + (post.id || index);
             });
 
             blogGrid.appendChild(card);
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ? new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
             : '';
         postTitle.textContent = post.title;
-        postAuthor.textContent = post.author || 'Your Journey Coach';
+        postAuthor.textContent = post.author || 'Journey Coach';
 
         postContent.innerHTML = '';
 
@@ -92,6 +92,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const bodyContainer = document.createElement('div');
         bodyContainer.innerHTML = bodyHtml;
         postContent.appendChild(bodyContainer);
+
+        // Update OG meta tags for this post
+        const postUrl = 'https://journeycoach.co/blog.html#post-' + (post.id || index);
+        const setMeta = (prop, val) => {
+            const el = document.querySelector(`meta[property="${prop}"]`);
+            if (el) el.setAttribute('content', val);
+        };
+        setMeta('og:title', post.title + ' | Your Journey Coach');
+        setMeta('og:description', post.summary || 'Insights on leadership and Enneagram from Your Journey Coach.');
+        setMeta('og:image', post.image_url || 'https://journeycoach.co/assets/images/about_john.jpg');
+        setMeta('og:url', postUrl);
+        const canonical = document.getElementById('canonical-url');
+        if (canonical) canonical.setAttribute('href', postUrl);
+
+        // Wire up share buttons
+        const shareUrl  = encodeURIComponent('https://journeycoach.co/blog.html#post-' + (post.id || index));
+        const shareText = encodeURIComponent(post.title + ' — Your Journey Coach');
+
+        document.getElementById('share-linkedin').href =
+            'https://www.linkedin.com/sharing/share-offsite/?url=' + shareUrl;
+
+        document.getElementById('share-x').href =
+            'https://twitter.com/intent/tweet?url=' + shareUrl + '&text=' + shareText;
+
+        const copyBtn = document.getElementById('share-copy');
+        copyBtn.classList.remove('copied');
+        copyBtn.innerHTML = copyBtn.innerHTML.replace(/Copy Link|Copied!/, 'Copy Link');
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(decodeURIComponent(shareUrl)).then(() => {
+                copyBtn.classList.add('copied');
+                copyBtn.innerHTML = copyBtn.innerHTML.replace('Copy Link', 'Copied!');
+                setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    copyBtn.innerHTML = copyBtn.innerHTML.replace('Copied!', 'Copy Link');
+                }, 2500);
+            });
+        };
     }
 
     backBtn.addEventListener('click', () => {
@@ -102,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchPosts() {
         try {
-            const response = await fetch('/api/content/posts');
+            const response = await fetch('/api/content?type=posts');
             if (!response.ok) throw new Error(`Posts request failed: ${response.status}`);
 
             const result = await response.json();
@@ -111,8 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const hash = window.location.hash;
             if (hash.startsWith('#post-')) {
-                const idx = parseInt(hash.replace('#post-', ''), 10);
-                if (!isNaN(idx) && allPosts[idx]) renderSinglePost(idx);
+                const id = parseInt(hash.replace('#post-', ''), 10);
+                if (!isNaN(id)) {
+                    // Try to find by stable post.id first, fall back to array index
+                    let idx = allPosts.findIndex(p => p.id === id);
+                    if (idx === -1 && allPosts[id]) idx = id;
+                    if (idx !== -1) renderSinglePost(idx);
+                }
             }
         } catch (error) {
             console.error('Error fetching blog posts:', error);

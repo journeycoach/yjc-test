@@ -156,9 +156,7 @@
     const form = document.getElementById('hc-assessment-form');
     const stepContainer = document.getElementById('hc-step-container');
     const errorEl = document.getElementById('hc-form-error');
-    const backBtn = document.getElementById('hc-back-btn');
     const nextBtn = document.getElementById('hc-next-btn');
-    const submitBtn = document.getElementById('hc-submit-btn');
     const progressLabel = document.getElementById('hc-progress-label');
     const progressCaption = document.getElementById('hc-progress-caption');
     const progressBar = document.getElementById('hc-progress-bar');
@@ -174,9 +172,9 @@
         progressBar.style.width = `${progressPercent}%`;
         errorEl.textContent = '';
 
-        backBtn.hidden = state.stepIndex === 0;
-        nextBtn.hidden = state.stepIndex === totalSteps - 1;
-        submitBtn.hidden = state.stepIndex !== totalSteps - 1;
+        const isLast = state.stepIndex === totalSteps - 1;
+        nextBtn.hidden = false;
+        nextBtn.textContent = isLast ? 'Get My Results' : 'Continue';
 
         if (step.type === 'intro') {
             stepContainer.innerHTML = `
@@ -206,10 +204,7 @@
                 ${step.options.map((option, index) => `
                     <label class="hc-choice ${selected === index ? 'is-selected' : ''}">
                         <input type="radio" name="${step.id}" value="${index}" ${selected === index ? 'checked' : ''}>
-                        <div>
-                            <strong>${option.title}</strong>
-                            <span>${option.text}</span>
-                        </div>
+                        <span>${option.text}</span>
                     </label>
                 `).join('')}
             </div>
@@ -259,13 +254,15 @@
     async function submitAssessment() {
         if (!validateCurrentStep()) return;
 
-        submitBtn.disabled = true;
         nextBtn.disabled = true;
-        backBtn.disabled = true;
-        submitBtn.textContent = 'Scoring...';
+        stepContainer.innerHTML = `
+            <div style="text-align:center;padding:2.5rem 1rem;">
+                <div style="width:36px;height:36px;border:3px solid rgba(201,169,110,0.2);border-top-color:var(--color-accent-gold);border-radius:50%;animation:hc-spin 0.7s linear infinite;margin:0 auto 1.25rem;"></div>
+                <p style="color:var(--color-text-muted);font-size:0.9rem;margin:0;">Scoring your results…</p>
+            </div>`;
 
         try {
-            const response = await fetch('/api/hidden-ceiling', {
+            const response = await fetch('/api/contact', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -286,10 +283,8 @@
             showResult(data);
         } catch (error) {
             errorEl.textContent = error.message || 'Something went wrong while submitting your assessment.';
-            submitBtn.disabled = false;
             nextBtn.disabled = false;
-            backBtn.disabled = false;
-            submitBtn.textContent = 'See My Result';
+            render();
         }
     }
 
@@ -309,9 +304,6 @@
         const actionsList = document.getElementById('hc-result-actions');
         actionsList.innerHTML = meta.nextSteps.map((item) => `<li>${item}</li>`).join('');
 
-        document.getElementById('hc-download-btn').href = meta.guideUrl;
-        document.getElementById('hc-download-btn').setAttribute('download', '');
-
         document.getElementById('hc-score-grid').innerHTML = [
             { label: 'Heart', value: scores.heart },
             { label: 'Head', value: scores.head },
@@ -328,17 +320,13 @@
         resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    backBtn.addEventListener('click', () => {
-        if (state.stepIndex === 0) return;
-        state.stepIndex -= 1;
-        render();
-    });
-
-    nextBtn.addEventListener('click', () => {
+    nextBtn.addEventListener('click', async () => {
         if (!validateCurrentStep()) return;
         if (state.stepIndex < ASSESSMENT_STEPS.length - 1) {
             state.stepIndex += 1;
             render();
+        } else {
+            await submitAssessment();
         }
     });
 

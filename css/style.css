@@ -203,7 +203,14 @@ ul {
     z-index: 1000;
     display: flex;
     align-items: center;
-    transition: height 0.35s ease, padding 0.4s ease;
+    transition: height 0.35s ease, padding 0.4s ease, transform 0.3s ease;
+    /* Needed so mobile dropdown positions relative to navbar */
+    overflow: visible;
+}
+
+/* Slide navbar off screen when scrolling down on mobile */
+.navbar.nav-hidden {
+    transform: translateY(-100%);
 }
 
 .navbar.scrolled {
@@ -257,6 +264,7 @@ ul {
 .logo {
     display: flex;
     align-items: center;
+    gap: 10px;
     transition: opacity 0.35s ease;
 }
 
@@ -269,15 +277,28 @@ ul {
     width: auto;
     display: block;
     transition: height 0.35s ease, filter 0.4s ease;
-    /* On dark hero: logo has navy/grey tones that show clearly */
+    /* On dark hero: white tint to show on dark backgrounds */
     filter: brightness(0) invert(1);
-    /* White-tinted for dark background at top */
 }
 
 .navbar.scrolled .logo-img {
-    height: 40px;
+    height: 34px;
     filter: none;
     /* Full colour on white scrolled navbar */
+}
+
+.logo-brand {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: #ffffff;
+    transition: color 0.4s ease;
+    white-space: nowrap;
+}
+
+.navbar.scrolled .logo-brand {
+    color: var(--color-text-primary);
 }
 
 .footer-logo {
@@ -297,6 +318,41 @@ ul {
     display: flex;
     gap: var(--spacing-md);
     align-items: center;
+}
+
+/* ── Hamburger icon (hidden on desktop) ───────────────────── */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    z-index: 1100;
+    flex-shrink: 0;
+}
+
+.hamburger span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--color-text-primary);
+    border-radius: 2px;
+    transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease;
+    transform-origin: center;
+}
+
+/* Animate to X when open */
+.navbar.nav-open .hamburger span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.navbar.nav-open .hamburger span:nth-child(2) {
+    opacity: 0;
+    width: 0;
+}
+.navbar.nav-open .hamburger span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
 }
 
 .nav-links a {

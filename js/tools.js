@@ -14,17 +14,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         const [toolsRes, settingsRes] = await Promise.all([
-            fetch('/api/content/tools'),
-            fetch('/api/content/settings')
+            fetch('/api/content?type=tools'),
+            fetch('/api/content?type=settings')
         ]);
 
         if (!toolsRes.ok) {
-            throw new Error(`Failed to load tools: ${toolsRes.status}`);
+            throw new Error(`Tools request failed: ${toolsRes.status}`);
         }
 
-        const payload = await toolsRes.json();
+        const result = await toolsRes.json();
         const settingsPayload = settingsRes.ok ? await settingsRes.json() : { data: {} };
-        const resources = (payload.data || []).map(normalizeTool);
+        const resources = (result.data || []).map(normalizeTool);
         let categoryOrder = [];
 
         try {
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const grid = section.querySelector('.tools-grid');
 
             tools.forEach(tool => {
-                const isFile = tool.type === 'file';
+                const isFile = tool.type === 'file' || tool.type === 'File Upload';
                 const linkUrl = isFile ? tool.fileUrl : tool.externalUrl;
                 const isBooksCategory = (categoryName || '').toLowerCase() === 'books';
                 const renderImageOnly = isBooksCategory && !!tool.imageUrl;

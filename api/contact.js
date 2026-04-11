@@ -1,37 +1,147 @@
 import { sql } from './_db.js';
-import nodemailer from 'nodemailer';
-import { fileURLToPath } from 'url';
+import { Resend } from 'resend';
 
-const HIDDEN_CEILING_SCORE_MAP = {
-  q1: ['head', 'action', 'heart'],
-  q2: ['head', 'heart', 'action'],
-  q3: ['head', 'heart', 'action'],
-  q4: ['heart', 'head', 'action'],
-  q5: ['head', 'heart', 'action'],
-  q6: ['heart', 'head', 'action'],
-  q7: ['heart', 'head', 'action'],
-};
+async function handleSubscribe(req, res) {
+  const { email, name, source } = req.body || {};
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).json({ error: 'A valid email address is required.' });
+  }
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS subscribers (
+        id         SERIAL PRIMARY KEY,
+        email      TEXT UNIQUE NOT NULL,
+        name       TEXT,
+        source     TEXT DEFAULT 'website',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    await sql`
+      INSERT INTO subscribers (email, name, source)
+      VALUES (${email.toLowerCase().trim()}, ${name?.trim() || null}, ${source || 'website'})
+      ON CONFLICT (email) DO NOTHING
+    `;
+  } catch (err) {
+    console.error('subscribe insert error:', err);
+    return res.status(500).json({ error: 'Could not save your subscription.' });
+  }
+  try {
+    const resendKey = process.env.RESEND_API_KEY;
+    if (resendKey) {
+      const firstName = (name || '').trim().split(' ')[0] || 'there';
+      const resend = new Resend(resendKey);
+      await resend.emails.send({
+        from: 'John Paine | Your Journey Coach <hello@journeycoach.co>',
+        to: email,
+        subject: 'Understanding Your Hidden Ceiling',
+        html: buildGuideEmail(firstName),
+      });
+    }
+  } catch (emailErr) {
+    console.error('Welcome email failed:', emailErr.message);
+  }
+  return res.status(200).json({ ok: true });
+}
 
-const HIDDEN_CEILING_GUIDES = {
-  heart: {
-    title: 'Connection-Oriented Leader',
-    guideLabel: 'Hidden Ceiling Guide for the Connection-Oriented Leader',
-    fileName: 'hidden_ceiling_connection_oriented_leader.pdf',
-    publicPath: '/assets/downloads/hidden_ceiling_connection_oriented_leader.pdf',
-  },
-  head: {
-    title: 'Thinking-Oriented Leader',
-    guideLabel: 'Hidden Ceiling Guide for the Thinking-Oriented Leader',
-    fileName: 'hidden_ceiling_thinking_oriented_leader.pdf',
-    publicPath: '/assets/downloads/hidden_ceiling_thinking_oriented_leader.pdf',
-  },
-  action: {
-    title: 'Action-Oriented Leader',
-    guideLabel: 'Hidden Ceiling Guide for the Action-Oriented Leader',
-    fileName: 'hidden_ceiling_action_oriented_leader.pdf',
-    publicPath: '/assets/downloads/hidden_ceiling_action_oriented_leader.pdf',
-  },
-};
+async function handleHiddenCeiling(req, res) {
+  const { name, email, company, source, answers } = req.body || {};
+
+  // Honeypot — bots fill the company field
+  if (company) {
+    return res.status(200).json({ ok: true, result: { center: 'heart' }, scores: { heart: 0, head: 0, action: 0 }, emailSent: false });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!name?.trim()) return res.status(400).json({ error: 'Please enter your name.' });
+  if (!email || !emailRegex.test(email)) return res.status(400).json({ error: 'Please enter a valid email address.' });
+  if (!answers || typeof answers !== 'object') return res.status(400).json({ error: 'Assessment answers are required.' });
+
+  // Score: each question maps answer index → center
+  const SCORE_MAP = {
+    q1: ['head', 'action', 'heart'],
+    q2: ['head', 'heart', 'action'],
+    q3: ['head', 'heart', 'action'],
+    q4: ['heart', 'head', 'action'],
+    q5: ['head', 'heart', 'action'],
+    q6: ['heart', 'head', 'action'],
+    q7: ['heart', 'head', 'action'],
+  };
+
+  const scores = { heart: 0, head: 0, action: 0 };
+  for (const [qId, centers] of Object.entries(SCORE_MAP)) {
+    const idx = answers[qId];
+    if (idx !== null && idx !== undefined && centers[idx]) {
+      scores[centers[idx]]++;
+    }
+  }
+
+  const center = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+  const result = { center };
+
+  // Save to subscribers with assessment result (best-effort)
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS subscribers (
+        id             SERIAL PRIMARY KEY,
+        email          TEXT UNIQUE NOT NULL,
+        name           TEXT,
+        source         TEXT DEFAULT 'website',
+        created_at     TIMESTAMPTZ DEFAULT NOW(),
+        result_center  TEXT,
+        score_heart    INT,
+        score_head     INT,
+        score_action   INT
+      )
+    `;
+    await sql`
+      ALTER TABLE subscribers
+        ADD COLUMN IF NOT EXISTS result_center TEXT,
+        ADD COLUMN IF NOT EXISTS score_heart   INT,
+        ADD COLUMN IF NOT EXISTS score_head    INT,
+        ADD COLUMN IF NOT EXISTS score_action  INT
+    `;
+    await sql`
+      INSERT INTO subscribers (email, name, source, result_center, score_heart, score_head, score_action)
+      VALUES (
+        ${email.toLowerCase().trim()}, ${name.trim() || null}, ${source || 'hidden-ceiling'},
+        ${center}, ${scores.heart}, ${scores.head}, ${scores.action}
+      )
+      ON CONFLICT (email) DO UPDATE SET
+        result_center = EXCLUDED.result_center,
+        score_heart   = EXCLUDED.score_heart,
+        score_head    = EXCLUDED.score_head,
+        score_action  = EXCLUDED.score_action
+    `;
+  } catch (dbErr) {
+    console.error('hidden ceiling subscriber save error:', dbErr);
+  }
+
+  // Send personalised result email (best-effort)
+  let emailSent = false;
+  let emailError = null;
+  try {
+    const resendKey = process.env.RESEND_API_KEY;
+    if (!resendKey) {
+      emailError = 'RESEND_API_KEY environment variable is not set in Vercel.';
+    } else {
+      const firstName = name.trim().split(' ')[0] || 'there';
+      const resend = new Resend(resendKey);
+      await resend.emails.send({
+        from: 'John Paine | Your Journey Coach <hello@journeycoach.co>',
+        to: email,
+        subject: 'Your Hidden Ceiling Assessment Result',
+        html: buildHiddenCeilingEmail(firstName, center, scores),
+      });
+      emailSent = true;
+    }
+  } catch (emailErr) {
+    emailError = emailErr.message;
+    console.error('Hidden ceiling email failed:', emailErr.message);
+  }
+
+  return res.status(200).json({ ok: true, result, scores, emailSent, emailError });
+}
 
 export default async function handler(req, res) {
   try {
@@ -40,19 +150,13 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { action, name, email, phone, interest, message, _honey, company, source, answers, 'cf-turnstile-response': turnstileToken } = req.body;
+    const { action, name, email, phone, interest, message, _honey, 'cf-turnstile-response': turnstileToken } = req.body;
 
-    if (action === 'hidden_ceiling') {
-      return await handleHiddenCeiling({
-        name,
-        email,
-        company,
-        source,
-        answers,
-        req,
-        res,
-      });
-    }
+    // Route subscribe action
+    if (action === 'subscribe') return handleSubscribe(req, res);
+
+    // Route hidden ceiling assessment
+    if (action === 'hidden_ceiling') return handleHiddenCeiling(req, res);
 
     // Honeypot check — bots fill hidden fields; humans leave them blank
     if (_honey) {
@@ -107,16 +211,16 @@ export default async function handler(req, res) {
 
     // Attempt email notification — failure does NOT affect the 200 response
     try {
-      const smtpPassword = process.env.SMTP_PASSWORD;
+      const resendKey = process.env.RESEND_API_KEY;
       const toEmail = process.env.CONTACT_EMAIL;
 
-      if (!smtpPassword || !toEmail) {
-        console.error('Missing SMTP_PASSWORD or CONTACT_EMAIL — skipping email notification.');
+      if (!resendKey || !toEmail) {
+        console.error('Missing RESEND_API_KEY or CONTACT_EMAIL — skipping email notification.');
       } else {
         const html = `
           <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; color: #1a1d1e; background: #fff; padding: 32px; border-radius: 8px;">
             <h2 style="color: #c7a96b; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 16px;">
-              New Inquiry — Your Journey Coach
+              New Inquiry — Journey Coach
             </h2>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
               <tr>
@@ -141,20 +245,14 @@ export default async function handler(req, res) {
               </tr>
             </table>
             <p style="color: #999; font-size: 0.85rem; margin-bottom: 0;">
-              Sent via yourjourneycoach.com contact form · ${new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })} ET
+              Sent via journeycoach.co contact form · ${new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })} ET
             </p>
           </div>
         `;
 
-        const transporter = nodemailer.createTransport({
-          host: 'smtp.forwardemail.net',
-          port: 465,
-          secure: true,
-          auth: { user: 'hello@yourjourneycoach.com', pass: smtpPassword },
-        });
-
-        await transporter.sendMail({
-          from: 'Your Journey Coach <hello@yourjourneycoach.com>',
+        const resend = new Resend(resendKey);
+        await resend.emails.send({
+          from: 'Journey Coach <hello@journeycoach.co>',
           to: toEmail,
           replyTo: email,
           subject: `New Inquiry from ${name}`,
@@ -183,152 +281,120 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-async function handleHiddenCeiling({ name, email, company, source, answers, req, res }) {
-  if (company) {
-    return res.status(200).json({ ok: true });
-  }
-
-  if (!name?.trim() || !email?.trim()) {
-    return res.status(400).json({ error: 'Name and email are required.' });
-  }
-
-  const normalizedEmail = String(email).trim().toLowerCase();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(normalizedEmail)) {
-    return res.status(400).json({ error: 'Please enter a valid email address.' });
-  }
-
-  await ensureHiddenCeilingTable();
-
-  const parsedAnswers = Object.fromEntries(
-    Object.entries(answers || {}).map(([key, value]) => [key, Number(value)])
-  );
-  const scores = computeHiddenCeilingScores(parsedAnswers);
-  const center = resolveHiddenCeilingCenter(scores, parsedAnswers);
-  const guide = HIDDEN_CEILING_GUIDES[center];
-
-  let emailSent = false;
-  const siteUrl = process.env.PUBLIC_SITE_URL || `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers['x-forwarded-host'] || req.headers.host}`;
-
-  try {
-    if (process.env.SMTP_PASSWORD) {
-      const transporter = nodemailer.createTransport({
-        host: 'smtp.forwardemail.net',
-        port: 465,
-        secure: true,
-        auth: { user: 'hello@yourjourneycoach.com', pass: process.env.SMTP_PASSWORD },
-      });
-
-      const attachmentPath = fileURLToPath(new URL(`../assets/downloads/${guide.fileName}`, import.meta.url));
-
-      await transporter.sendMail({
-        from: 'Your Journey Coach <hello@yourjourneycoach.com>',
-        to: normalizedEmail,
-        subject: `Your Hidden Ceiling Guide: ${guide.title}`,
-        html: buildHiddenCeilingEmail({ name: name.trim(), guide, siteUrl }),
-        attachments: [
-          {
-            filename: guide.fileName,
-            path: attachmentPath,
-            contentType: 'application/pdf',
-          },
-        ],
-      });
-
-      emailSent = true;
-    } else {
-      console.error('Missing SMTP_PASSWORD for hidden ceiling email delivery.');
-    }
-  } catch (emailErr) {
-    console.error('Hidden ceiling email failed:', emailErr);
-  }
-
-  await sql`
-    INSERT INTO hidden_ceiling_submissions
-      (name, email, result_center, heart_score, head_score, action_score, answers, source, guide_filename, email_sent)
-    VALUES
-      (${name.trim()}, ${normalizedEmail}, ${center}, ${scores.heart}, ${scores.head}, ${scores.action}, ${JSON.stringify(parsedAnswers)}::jsonb, ${source || 'website'}, ${guide.fileName}, ${emailSent})
-  `;
-
-  return res.status(200).json({
-    ok: true,
-    result: {
-      center,
-      title: guide.title,
-      guideUrl: guide.publicPath,
+function buildHiddenCeilingEmail(firstName, center, scores) {
+  const esc = escapeHtml;
+  const meta = {
+    heart: {
+      centerLabel: 'Heart Center',
+      title: 'You lead like a Connection-Oriented Leader',
+      summary: 'Your responses point to a leadership pattern that instinctively tracks people, morale, and the emotional temperature of the room.',
+      description: 'You are often the person who can sense the undercurrent nobody else is naming. That makes you a stabilizing presence in culture, trust, and relationship repair.',
+      blindspot: 'Under pressure, that same strength can turn into over-identifying with how others are feeling, over-functioning relationally, or softening hard decisions until the moment has passed.',
+      nextSteps: [
+        'Notice where harmony is becoming more important than clarity.',
+        "Name the decision before you manage everyone's reaction to it.",
+        'Use the guide to spot the situations where connection quietly turns into self-protection.',
+      ],
+      guideUrl: 'https://journeycoach.co/assets/downloads/hidden_ceiling_connection_oriented_leader.pdf',
+      guideLabel: 'Download Your Guide: The Connection-Oriented Leader',
     },
-    scores,
-    emailSent,
-  });
-}
+    head: {
+      centerLabel: 'Head Center',
+      title: 'You lead like a Thinking-Oriented Leader',
+      summary: 'Your responses point to a leadership pattern that instinctively searches for clarity, logic, and the cleanest explanation of what is happening.',
+      description: 'You likely bring rigor, objectivity, and strong pattern recognition to complex systems. People rely on you to see risk, ask the smart question, and think around corners.',
+      blindspot: 'Under pressure, that strength can become over-analysis, emotional distance, or a subtle dependence on certainty before moving. The room can feel managed by logic but not fully led through tension.',
+      nextSteps: [
+        'Watch for the moment information-gathering becomes a delay tactic.',
+        'Pair your analysis with a visible relational read on the team.',
+        'Use the guide to identify where objectivity is protecting you from discomfort rather than serving the decision.',
+      ],
+      guideUrl: 'https://journeycoach.co/assets/downloads/hidden_ceiling_thinking_oriented_leader.pdf',
+      guideLabel: 'Download Your Guide: The Thinking-Oriented Leader',
+    },
+    action: {
+      centerLabel: 'Gut Center',
+      title: 'You lead from the Gut Center',
+      summary: 'Your responses point to a leadership pattern that instinctively values movement, decisiveness, and the ability to convert energy into results.',
+      description: 'You likely create traction quickly. People experience you as someone who can cut through noise, set direction, and keep a team from stalling out in uncertainty.',
+      blindspot: 'Under pressure, that strength can harden into impatience, over-control, or the urge to move faster than the system around you can metabolize. Speed starts solving anxiety instead of solving the right problem.',
+      nextSteps: [
+        'Notice where urgency is outrunning reflection or buy-in.',
+        'Slow down long enough to separate momentum from reactivity.',
+        'Use the guide to spot where force and clarity are getting conflated inside your leadership.',
+      ],
+      guideUrl: 'https://journeycoach.co/assets/downloads/hidden_ceiling_action_oriented_leader.pdf',
+      guideLabel: 'Download Your Guide: The Action-Oriented Leader',
+    },
+  };
 
-async function ensureHiddenCeilingTable() {
-  await sql`
-    CREATE TABLE IF NOT EXISTS hidden_ceiling_submissions (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL,
-      result_center VARCHAR(20) NOT NULL,
-      heart_score INTEGER DEFAULT 0,
-      head_score INTEGER DEFAULT 0,
-      action_score INTEGER DEFAULT 0,
-      answers JSONB NOT NULL DEFAULT '{}'::jsonb,
-      source VARCHAR(100),
-      guide_filename VARCHAR(255),
-      email_sent BOOLEAN DEFAULT FALSE,
-      submitted_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `;
-}
+  const m = meta[center] || meta.heart;
+  const stepsHtml = m.nextSteps.map(s => `<li style="margin-bottom:0.5em;">${esc(s)}</li>`).join('');
 
-function computeHiddenCeilingScores(answers) {
-  const scores = { heart: 0, head: 0, action: 0 };
-
-  for (const [questionKey, optionCenters] of Object.entries(HIDDEN_CEILING_SCORE_MAP)) {
-    const selectedIndex = answers?.[questionKey];
-    if (!Number.isInteger(selectedIndex) || selectedIndex < 0 || selectedIndex >= optionCenters.length) {
-      throw new Error(`Missing or invalid answer for ${questionKey}.`);
-    }
-    const center = optionCenters[selectedIndex];
-    scores[center] += 1;
-  }
-
-  return scores;
-}
-
-function resolveHiddenCeilingCenter(scores, answers) {
-  const maxScore = Math.max(scores.heart, scores.head, scores.action);
-  const leaders = Object.entries(scores)
-    .filter(([, score]) => score === maxScore)
-    .map(([center]) => center);
-
-  if (leaders.length === 1) return leaders[0];
-
-  const finalAnswerCenter = HIDDEN_CEILING_SCORE_MAP.q7[answers.q7];
-  if (leaders.includes(finalAnswerCenter)) return finalAnswerCenter;
-
-  if (leaders.includes('action') && leaders.includes('head')) return 'action';
-
-  return leaders[0];
-}
-
-function buildHiddenCeilingEmail({ name, guide, siteUrl }) {
-  const callUrl = `${siteUrl.replace(/\/$/, '')}/#contact`;
   return `
-    <div style="font-family: Georgia, serif; max-width: 620px; margin: 0 auto; color: #1a1d1e; background: #fff; padding: 32px; border-radius: 8px;">
-      <p style="font-size: 1rem; line-height: 1.7;">${escapeHtml(name)},</p>
-      <p style="font-size: 1rem; line-height: 1.7;">As a leader, your dominant internal operating system is your habit, and your habits are often the exact reason you have achieved your current level of success. Under the pressure of scaling a business or managing a complex team, that same strength can also create a predictable bottleneck.</p>
-      <p style="font-size: 1rem; line-height: 1.7;">I analyzed your assessment and attached your <strong>${escapeHtml(guide.guideLabel)}</strong>.</p>
-      <p style="font-size: 1rem; line-height: 1.7;">Inside this brief guide, you will find:</p>
-      <ul style="line-height: 1.8; padding-left: 1.2rem;">
-        <li>An unfiltered look at the specific blindspot associated with your leadership style.</li>
-        <li>How the different parts of your internal system react under extreme stress.</li>
-        <li>Three immediate, actionable shifts you can make this week to break through your current ceiling.</li>
-      </ul>
-      <p style="font-size: 1rem; line-height: 1.7;">Reading about your leadership shadow is step one. Doing the work to align your internal system so you can lead with sustainable, high-leverage impact is step two.</p>
-      <p style="font-size: 1rem; line-height: 1.7;">If the insights in your guide resonate with the friction you are currently experiencing in your organization, I invite you to <a href="${callUrl}" style="color:#c7a96b;">book a 20-minute Alignment Call</a> with me.</p>
-      <p style="font-size: 1rem; line-height: 1.7;">Best regards,<br>John Paine, PCC</p>
-      <p style="color:#888; font-size:0.82rem; margin-top: 2rem;">You received this because you requested your Hidden Ceiling guide from ${escapeHtml(siteUrl)}.</p>
-    </div>
-  `;
+<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#1a1d1e;background:#fff;padding:40px 32px;border-radius:8px;line-height:1.7;">
+  <p style="color:#888;font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;margin-top:0;">Your Journey Coach</p>
+  <p style="display:inline-block;background:#f5ead8;color:#c7a96b;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.3em 0.8em;border-radius:100px;font-family:Inter,sans-serif;margin-bottom:1rem;">${esc(m.centerLabel)}</p>
+  <h1 style="font-family:Georgia,serif;font-size:1.5rem;color:#1a1d1e;margin-bottom:0.5em;line-height:1.3;">${esc(m.title)}</h1>
+  <p>Hi ${esc(firstName)},</p>
+  <p>${esc(m.summary)}</p>
+  <hr style="border:none;border-top:1px solid #eee;margin:2rem 0;">
+  <h2 style="font-size:1rem;color:#c7a96b;margin-bottom:0.25em;">What this says about you</h2>
+  <p style="margin-top:0;">${esc(m.description)}</p>
+  <h2 style="font-size:1rem;color:#c7a96b;margin-top:1.5rem;margin-bottom:0.25em;">Watch for this pattern</h2>
+  <p style="margin-top:0;">${esc(m.blindspot)}</p>
+  <h2 style="font-size:1rem;color:#c7a96b;margin-top:1.5rem;margin-bottom:0.25em;">Start here this week</h2>
+  <ul style="margin-top:0;padding-left:1.25em;color:#333;">${stepsHtml}</ul>
+  <hr style="border:none;border-top:1px solid #eee;margin:2rem 0;">
+  <p style="color:#888;font-size:0.85rem;">Your scores &nbsp;—&nbsp; Heart: ${scores.heart} &nbsp;·&nbsp; Head: ${scores.head} &nbsp;·&nbsp; Action: ${scores.action}</p>
+  <p style="margin-top:1.5rem;">
+    <a href="${m.guideUrl}" style="display:inline-block;background:#c7a96b;color:#fff;text-decoration:none;padding:12px 28px;border-radius:4px;font-family:Inter,sans-serif;font-size:0.9rem;letter-spacing:0.04em;">${esc(m.guideLabel)} ↓</a>
+  </p>
+  <p>If you would like to explore what your results mean in the context of your specific situation, I would be glad to have a conversation.</p>
+  <p style="margin-top:1rem;">
+    <a href="https://journeycoach.co/#contact" style="display:inline-block;background:transparent;color:#c7a96b;text-decoration:none;padding:12px 28px;border-radius:4px;border:1px solid #c7a96b;font-family:Inter,sans-serif;font-size:0.9rem;letter-spacing:0.04em;">Book an Alignment Call →</a>
+  </p>
+  <p style="margin-top:2.5rem;color:#555;">With respect,</p>
+  <p style="margin:0;color:#1a1d1e;font-weight:bold;">John Paine</p>
+  <p style="margin:0;color:#888;font-size:0.85rem;">ICF PCC &nbsp;·&nbsp; iEQ9 Accredited &nbsp;·&nbsp; iPEC Certified</p>
+  <p style="margin:0.25em 0 0;color:#888;font-size:0.85rem;"><a href="https://journeycoach.co" style="color:#c7a96b;text-decoration:none;">journeycoach.co</a></p>
+  <hr style="border:none;border-top:1px solid #eee;margin:2rem 0;">
+  <p style="color:#bbb;font-size:0.75rem;margin:0;">You received this because you completed the Hidden Ceiling Assessment at journeycoach.co.</p>
+</div>`;
+}
+
+function buildGuideEmail(firstName) {
+  const esc = escapeHtml;
+  return `
+<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#1a1d1e;background:#fff;padding:40px 32px;border-radius:8px;line-height:1.7;">
+  <p style="color:#888;font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;margin-top:0;">Your Journey Coach</p>
+  <h1 style="font-family:Georgia,serif;font-size:1.6rem;color:#1a1d1e;margin-bottom:0.25em;line-height:1.3;">Understanding Your<br><em style="color:#c7a96b;">Hidden Ceiling</em></h1>
+  <p>Hi ${esc(firstName)},</p>
+  <p>Thank you for requesting the guide. Here's the core idea — and the five patterns I see most often in the leaders I work with.</p>
+  <hr style="border:none;border-top:1px solid #eee;margin:2rem 0;">
+  <p>The concept is counterintuitive: <strong>the behaviors that got you to your current level are frequently the exact behaviors that will limit your next level.</strong></p>
+  <p>A Hidden Ceiling isn't a skill gap or a knowledge gap. It's an identity gap — the distance between who you've learned to be as a professional, and who you'll need to become to lead with full impact.</p>
+  <h2 style="font-size:1.1rem;color:#c7a96b;margin-top:2rem;margin-bottom:0.25em;">1. The Achiever's Ceiling</h2>
+  <p style="margin-top:0;">You've built your identity around results — delivery, execution, getting things done. The ceiling appears when your organization needs vision and trust-building. You keep driving harder at a game that has quietly changed.</p>
+  <h2 style="font-size:1.1rem;color:#c7a96b;margin-top:1.5rem;margin-bottom:0.25em;">2. The Expert's Ceiling</h2>
+  <p style="margin-top:0;">You became senior because you knew more than others. Leadership now requires influencing people who know more than you in their own domains. Being the smartest person in the room is no longer the point.</p>
+  <h2 style="font-size:1.1rem;color:#c7a96b;margin-top:1.5rem;margin-bottom:0.25em;">3. The Harmony Ceiling</h2>
+  <p style="margin-top:0;">You've built real trust by keeping the peace and making people feel heard. The ceiling appears when hard decisions need to be made. Conflict avoidance has a cost that compounds quietly over time.</p>
+  <h2 style="font-size:1.1rem;color:#c7a96b;margin-top:1.5rem;margin-bottom:0.25em;">4. The Control Ceiling</h2>
+  <p style="margin-top:0;">You built your reputation through personal execution. True delegation — letting others own things that matter — feels like risk rather than leverage. The ceiling is reached when your span of responsibility exceeds what any one person can personally oversee.</p>
+  <h2 style="font-size:1.1rem;color:#c7a96b;margin-top:1.5rem;margin-bottom:0.25em;">5. The Identity Ceiling</h2>
+  <p style="margin-top:0;">Your sense of self is closely tied to your role and title. When the role changes or a major transition looms, you find yourself without a stable internal foundation. Success begins to feel fragile.</p>
+  <hr style="border:none;border-top:1px solid #eee;margin:2rem 0;">
+  <p>Your assessment results point toward one of these patterns. Awareness is the first real step — you cannot shift a pattern you cannot see.</p>
+  <p>If you'd like to explore what your results mean in the context of your specific situation, I'd be glad to have a conversation.</p>
+  <p style="margin-top:2rem;">
+    <a href="https://journeycoach.co/#contact" style="display:inline-block;background:#c7a96b;color:#fff;text-decoration:none;padding:12px 28px;border-radius:4px;font-family:Inter,sans-serif;font-size:0.9rem;letter-spacing:0.04em;">Start a Conversation →</a>
+  </p>
+  <p style="margin-top:2.5rem;color:#555;">With respect,</p>
+  <p style="margin:0;color:#1a1d1e;font-weight:bold;">John Paine</p>
+  <p style="margin:0;color:#888;font-size:0.85rem;">ICF PCC &nbsp;·&nbsp; iEQ9 Accredited &nbsp;·&nbsp; iPEC Certified</p>
+  <p style="margin:0.25em 0 0;color:#888;font-size:0.85rem;"><a href="https://journeycoach.co" style="color:#c7a96b;text-decoration:none;">journeycoach.co</a></p>
+  <hr style="border:none;border-top:1px solid #eee;margin:2rem 0;">
+  <p style="color:#bbb;font-size:0.75rem;margin:0;">You received this because you requested the Hidden Ceiling guide at journeycoach.co. No further emails unless you reach out.</p>
+</div>`;
 }

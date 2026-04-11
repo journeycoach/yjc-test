@@ -1,5 +1,8 @@
 {
   "outputDirectory": ".",
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/api/content/:type", "destination": "/api/content?type=:type" },
     { "source": "/api/admin/sections/:page", "destination": "/api/admin/sections?page=:page" },
@@ -11,9 +14,15 @@
       "source": "/api/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "POST, GET, PUT, PATCH, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, PATCH, DELETE, OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
       ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/drip",
+      "schedule": "0 13 * * *"
     }
   ]
 }

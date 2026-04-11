@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZM9X6CN8YK"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-ZM9X6CN8YK');</script>
     <title>Executive Leadership Coaching | Elevate Your Impact</title>
     <meta name="description"
         content="Premium executive coaching for high-impact leaders. Unlock your potential and drive organizational success.">
@@ -16,6 +19,29 @@
     <!-- Using the user's image for text message previews -->
     <meta property="og:image" content="https://journeycoach.co/assets/images/about_john.jpg">
     <meta property="og:url" content="https://journeycoach.co">
+
+    <!-- Person Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "John Paine",
+      "jobTitle": "Executive Leadership Coach",
+      "description": "ICF-certified executive coach helping high-impact leaders navigate transitions, unlock potential, and drive organizational success through Enneagram-grounded coaching.",
+      "url": "https://journeycoach.co",
+      "image": "https://journeycoach.co/assets/images/about_john.jpg",
+      "email": "hello@journeycoach.co",
+      "sameAs": [
+        "https://www.linkedin.com/in/john-paine/"
+      ],
+      "knowsAbout": ["Executive Coaching", "Leadership Development", "Enneagram", "Organizational Psychology", "Career Transitions"],
+      "worksFor": {
+        "@type": "Organization",
+        "name": "Your Journey Coach",
+        "url": "https://journeycoach.co"
+      }
+    }
+    </script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,6 +59,7 @@
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
     <link rel="icon" type="image/png" href="assets/images/favicon.png">
     <link rel="apple-touch-icon" href="assets/images/favicon.png">
+    <link rel="canonical" href="https://journeycoach.co/">
 </head>
 
 <body>
@@ -44,13 +71,13 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="logo" id="nav-logo">
+            <a href="/" class="logo" id="nav-logo">
                 <img src="assets/images/logo.png" alt="Your Journey Coach" class="logo-img">
             </a>
             <ul class="nav-links" id="nav-links-list">
                 <!-- Populated dynamically by js/nav.js from data/nav.json -->
             </ul>
-            <div class="hamburger" id="hamburger">
+            <div class="hamburger" id="hamburger" aria-label="Open navigation menu" role="button">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -106,7 +133,7 @@
                 </div>
                 <div class="split-image reveal-img">
                     <img id="welcome-img" src="assets/images/enneagram-session.png"
-                        alt="Executive Coaching Enneagram Session">
+                        alt="Executive Coaching Enneagram Session" loading="lazy">
                 </div>
             </div>
         </section>
@@ -131,7 +158,7 @@
                         strengthens presence and execution.</p>
                 </div>
                 <div class="split-image reveal-img delay-100">
-                    <img src="assets/images/about.png" alt="Forest Path Journey">
+                    <img src="assets/images/about.png" alt="Forest Path Journey" loading="lazy">
                     <div class="book-icon-overlay floating"
                         style="background: transparent; box-shadow: none; display: flex; align-items: center; justify-content: center;">
                         <svg viewBox="0 0 100 100"
@@ -229,6 +256,26 @@
             </div>
         </section>
 
+        <!-- Email Opt-in (hidden until lead_magnet_enabled in Admin Settings) -->
+        <section id="lead-magnet-strip" style="display:none;padding: 4.5rem 0; background: var(--color-bg-primary); border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04);">
+            <div class="container" style="max-width: 760px; display: flex; align-items: center; gap: 3rem; flex-wrap: wrap; justify-content: space-between;">
+                <div style="flex: 1; min-width: 260px;">
+                    <span style="display: block; font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-accent-gold); margin-bottom: 0.6rem;">Free Guide</span>
+                    <h3 style="font-family: 'Playfair Display', serif; font-size: 1.45rem; color: var(--color-text-primary); margin: 0 0 0.6rem; line-height: 1.35;">The Five Hidden Ceilings</h3>
+                    <p style="color: var(--color-text-secondary); font-size: 0.9rem; line-height: 1.65; margin: 0;">The patterns that quietly limit senior leaders — and the first step to breaking through yours. Sent once, no follow-up.</p>
+                </div>
+                <form id="home-subscribe-form" style="flex: 1; min-width: 260px; display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                    <input type="email" id="home-sub-email" placeholder="Your email address" required
+                        style="flex: 1; min-width: 180px; padding: 0.7rem 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; color: var(--color-text-primary); font-size: 0.9rem; outline: none;">
+                    <button type="submit"
+                        style="padding: 0.7rem 1.5rem; background: var(--color-accent-gold); color: #fff; border: none; border-radius: 4px; font-size: 0.85rem; letter-spacing: 0.04em; cursor: pointer; white-space: nowrap; font-family: Inter, sans-serif; transition: opacity 0.2s;">
+                        Get the Guide
+                    </button>
+                    <p id="home-subscribe-msg" style="margin: 0.4rem 0 0; font-size: 0.82rem; color: var(--color-accent-gold); display: none; width: 100%;"></p>
+                </form>
+            </div>
+        </section>
+
         <!-- About Section -->
         <section id="about" class="section-padding">
             <div class="container split-layout reverse">
@@ -253,7 +300,7 @@
                         style="margin-top: 15px; display: flex; align-items: center; gap: 20px;">
                         <img src="assets/images/CredentialBadges_PCC_Grey.jpg"
                             alt="ICF Professional Certified Coach (PCC)"
-                            style="max-height: 80px; width: auto; border-radius: 4px;">
+                            style="max-height: 80px; width: auto; border-radius: 4px;" loading="lazy">
                         <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
                             <span
                                 style="font-size: 0.9rem; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 1px;">Connect
@@ -273,7 +320,7 @@
                 </div>
                 <div class="split-image reveal-img delay-100">
                     <img id="about-portrait-img" src="assets/images/about_john.jpg" alt="John - Executive Coach"
-                        style="border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                        style="border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);" loading="lazy">
                 </div>
             </div>
         </section>
@@ -355,7 +402,8 @@
                             class="cf-input" style="resize: vertical; min-height: 120px;"></textarea>
                     </div>
 
-                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACwOgJv1aCZ3vsnP"></div>
+                    <!-- Production Turnstile site key is domain-specific. Do not replace this with the Test key. -->
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACt13j1xYnpJgcv2"></div>
 
                     
                     <!-- Submit -->
@@ -584,7 +632,7 @@
         <div class="container" style="display: flex; flex-direction: column; align-items: center; gap: 2rem;">
 
             <!-- Footer Logo -->
-            <a href="index.html">
+            <a href="/">
                 <img src="assets/images/logo.png" alt="Your Journey Coach" class="footer-logo">
             </a>
 
@@ -593,21 +641,28 @@
                 style="display: flex; justify-content: center; align-items: center; gap: 3rem; flex-wrap: wrap; opacity: 0.85; filter: grayscale(100%); transition: all 0.3s ease;">
                 <img src="assets/images/credential-icf.png" alt="ICF Professional Certified Coach"
                     style="max-height: 55px; width: auto; mix-blend-mode: multiply; transition: filter 0.3s ease; cursor: pointer;"
+                    loading="lazy"
                     onmouseover="this.style.filter='grayscale(0%)'; this.parentNode.style.opacity='1'"
                     onmouseout="this.style.filter='grayscale(100%)'; this.parentNode.style.opacity='0.85'">
                 <img src="assets/images/credential-ieq9.jpg" alt="iEQ9 Accredited Practitioner"
                     style="max-height: 55px; width: auto; mix-blend-mode: multiply; transition: filter 0.3s ease; cursor: pointer;"
+                    loading="lazy"
                     onmouseover="this.style.filter='grayscale(0%)'; this.parentNode.style.opacity='1'"
                     onmouseout="this.style.filter='grayscale(100%)'; this.parentNode.style.opacity='0.85'">
                 <img src="assets/images/credential-ipec.png" alt="iPEC Certified Professional Coach"
                     style="max-height: 55px; width: auto; mix-blend-mode: multiply; transition: filter 0.3s ease; cursor: pointer;"
+                    loading="lazy"
                     onmouseover="this.style.filter='grayscale(0%)'; this.parentNode.style.opacity='1'"
                     onmouseout="this.style.filter='grayscale(100%)'; this.parentNode.style.opacity='0.85'">
                 <img src="assets/images/credential-ipec-cpc.png" alt="iPEC Certified Professional Coach (CPC)"
                     style="max-height: 55px; width: auto; mix-blend-mode: multiply; transition: filter 0.3s ease; cursor: pointer;"
+                    loading="lazy"
                     onmouseover="this.style.filter='grayscale(0%)'; this.parentNode.style.opacity='1'"
                     onmouseout="this.style.filter='grayscale(100%)'; this.parentNode.style.opacity='0.85'">
             </div>
+
+            <!-- Footer Nav Links (dynamic via nav.js) -->
+            <nav id="footer-nav-links" style="display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center;"></nav>
 
             <a href="https://www.linkedin.com/in/john-paine/" target="_blank" rel="noopener noreferrer"
                 style="color: var(--color-text-secondary); transition: color 0.3s ease; display: flex; align-items: center; gap: 8px; text-decoration: none;"
@@ -619,11 +674,13 @@
                 </svg>
                 <span style="font-size: 0.95rem; font-weight: 500;">Connect with me</span>
             </a>
-            <nav id="footer-nav-links" style="display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center;"></nav>
             <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: -10px;">&copy; <span id="footer-year"></span> Your Journey Coach. All Rights Reserved.</p>
-            <a href="/admin" style="color: var(--color-text-muted); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; transition: color 0.3s ease;"
-                onmouseover="this.style.color='var(--color-accent-gold)'"
-                onmouseout="this.style.color='var(--color-text-muted)'">Admin Login</a>
+            <div style="display: flex; gap: 1.5rem;">
+                <a href="/privacy.html" style="color: var(--color-text-muted); font-size: 0.8rem; text-decoration: none; transition: color 0.3s ease;" onmouseover="this.style.color='var(--color-accent-gold)'" onmouseout="this.style.color='var(--color-text-muted)'">Privacy Policy</a>
+                <a href="/admin" style="color: var(--color-text-muted); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; transition: color 0.3s ease;"
+                    onmouseover="this.style.color='var(--color-accent-gold)'"
+                    onmouseout="this.style.color='var(--color-text-muted)'">Admin Login</a>
+            </div>
         </div>
     </footer>
 
@@ -631,6 +688,46 @@
     <script src="js/nav.js"></script>
     <script src="js/main.js"></script>
     <script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
+    <script>
+        document.getElementById('home-subscribe-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const msg = document.getElementById('home-subscribe-msg');
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+            try {
+                const res = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'subscribe',
+                        email: document.getElementById('home-sub-email').value.trim(),
+                        source: 'homepage'
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    msg.textContent = 'Check your inbox — the guide is on its way.';
+                    msg.style.color = 'var(--color-accent-gold)';
+                    msg.style.display = 'block';
+                    document.getElementById('home-sub-email').value = '';
+                    btn.textContent = 'Sent!';
+                } else {
+                    msg.textContent = data.error || 'Something went wrong. Please try again.';
+                    msg.style.color = '#e07070';
+                    msg.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Get the Guide';
+                }
+            } catch {
+                msg.textContent = 'Network error. Please try again.';
+                msg.style.color = '#e07070';
+                msg.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Get the Guide';
+            }
+        });
+    </script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 
